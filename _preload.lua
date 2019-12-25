@@ -39,6 +39,7 @@ newaction {
 	onWorkspace = function( wks )
 		p.generate( wks, 'build.gradle',      m.build_dot_gradle.generateWorkspace )
 		p.generate( wks, 'gradle.properties', m.gradle_dot_properties.generate )
+		p.generate( wks, 'settings.gradle',   m.settings_dot_gradle.generate )
 	end,
 
 	-- Project generator

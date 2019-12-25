@@ -11,13 +11,10 @@ androidstudio.settings_dot_gradle = m
 function m.generate( wks )
 	p.utf8()
 
-	if( #wks.projects > 0 ) then
-		local prj_strings = { }
+	for prj in p.workspace.eachproject( wks ) do
+		local project_dir = string.format( '%s/%s', prj.location, prj.name )
 
-		for prj in p.workspace.eachproject( wks ) do
-			table.insert( prj_strings, '\':' .. prj.name:lower() .. '\'' )
-		end
-
-		p.w( 'include %s', table.concat( prj_strings, ', ' ) )
+		p.w( 'include( \':%s\' )', prj.name )
+		p.w( 'project( \':%s\' ).projectDir = file( \'%s\' )', prj.name, p.workspace.getrelative( wks, project_dir ) )
 	end
 end
