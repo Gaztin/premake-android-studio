@@ -25,12 +25,6 @@ p.api.register {
 }
 
 p.api.register {
-	name  = 'appid',
-	scope = 'project',
-	kind  = 'string'
-}
-
-p.api.register {
 	name  = 'minsdkversion',
 	scope = 'project',
 	kind  = 'string'
