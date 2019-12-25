@@ -44,7 +44,7 @@ newaction {
 
 	-- Project generator
 	onProject = function( prj )
-		p.generate( prj, 'build.gradle', m.build_dot_gradle.generateProject )
+		p.generate( prj, string.format( '%s/build.gradle', prj.name ), m.build_dot_gradle.generateProject )
 	end,
 }
 
