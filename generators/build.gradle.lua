@@ -14,8 +14,8 @@ function m.generateWorkspace( wks )
 
 	m.push( 'buildscript' )
 	m.push( 'repositories' )
---	p.w( 'jcenter()' )
---	p.w( 'google()' )
+	p.w( 'jcenter()' )
+	p.w( 'google()' )
 	m.pop() -- repositories
 	m.push( 'dependencies' )
 	p.w( 'classpath \'com.android.tools.build:gradle:%s\'', androidstudio.gradleVersion( wks ) )
@@ -23,8 +23,8 @@ function m.generateWorkspace( wks )
 	m.pop() -- buildscript
 	m.push( 'allprojects' )
 	m.push( 'repositories' )
---	p.w( 'jcenter()' )
---	p.w( 'google()' )
+	p.w( 'jcenter()' )
+	p.w( 'google()' )
 	m.pop() -- repositories
 	m.pop() -- allprojects
 end
