@@ -13,7 +13,7 @@ newaction {
 	-- Metadata
 	trigger     = 'android-studio',
 	shortname   = 'Android Studio',
-	description = 'Generate build files for Android Studio by JetBrains',
+	description = 'Generate build files for Android Studio by Google and JetBrains',
 
 	-- Capabilities
 	valid_kinds = {
