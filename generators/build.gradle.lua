@@ -41,6 +41,7 @@ function m.generateProject( prj )
 	m.defaultConfig( prj )
 	m.externalNativeBuild( prj )
 	m.buildTypes( prj )
+	m.sourceSets( prj )
 	m.pop() -- android
 end
 
@@ -95,6 +96,30 @@ function m.buildTypes( prj )
 	end
 
 	m.pop() -- buildTypes
+end
+
+function m.sourceSets( prj )
+	m.push( 'sourceSets' )
+
+	for cfg in p.project.eachconfig( prj ) do
+		local build_type    = androidstudio.getBuildType( cfg )
+		local manifest_file = androidstudio.findFileByName( cfg, 'AndroidManifest.xml' )
+		local java_dirs     = androidstudio.findJavaDirs( cfg )
+
+		m.push( build_type )
+
+		if( manifest_file ) then
+			p.w( 'manifest.srcFile \'%s\'', manifest_file )
+		end
+
+		if( #java_dirs > 0 ) then
+			p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
+		end
+
+		m.pop() -- @build_type
+	end
+
+	m.pop() -- sourceSets
 end
 
 function m.cFlags( cfg )
