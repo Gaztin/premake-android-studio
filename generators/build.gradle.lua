@@ -101,6 +101,8 @@ end
 function m.sourceSets( prj )
 	local manifest_file = androidstudio.findManifest( prj )
 	local java_dirs     = androidstudio.findJavaDirs( prj )
+	local res_dirs      = androidstudio.findResourceDirs( prj )
+	local asset_dirs    = androidstudio.findAssetDirs( prj )
 
 	m.push( 'sourceSets' )
 	m.push( 'main' )
@@ -111,6 +113,14 @@ function m.sourceSets( prj )
 
 	if( #java_dirs > 0 ) then
 		p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
+	end
+
+	if( #res_dirs > 0 ) then
+		p.w( 'res.srcDirs \'%s\'', table.concat( res_dirs, '\', \'' ) )
+	end
+
+	if( #asset_dirs > 0 ) then
+		p.w( 'assets.srcDirs \'%s\'', table.concat( asset_dirs, '\', \'' ) )
 	end
 
 	m.pop() -- main
