@@ -70,7 +70,6 @@ end
 function m.externalNativeBuild( prj )
 	m.push( 'externalNativeBuild' )
 	m.push( 'ndkBuild' )
---	p.w( 'path \'jni/Android.mk\'' )
 	p.w( 'path \'Android.mk\'' )
 	m.pop() -- ndkBuild
 	m.pop() -- externalNativeBuild
