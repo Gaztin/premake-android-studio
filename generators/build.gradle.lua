@@ -35,7 +35,12 @@ end
 function m.generateProject( prj )
 	p.indent( '    ' )
 
-	p.w( 'apply plugin: \'com.android.application\'' )
+	if( androidstudio.isApp( prj ) ) then
+		p.w( 'apply plugin: \'com.android.application\'' )
+	else
+		p.w( 'apply plugin: \'com.android.library\'' )
+	end
+
 	m.push( 'android' )
 	p.w( 'compileSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
 	m.defaultConfig( prj )
@@ -59,7 +64,11 @@ end
 
 function m.defaultConfig( prj )
 	m.push( 'defaultConfig' )
-	p.w( 'applicationId \'%s\'', prj.appid )
+
+	if( androidstudio.isApp( prj ) ) then
+		p.w( 'applicationId \'%s\'', prj.appid )
+	end
+
 	p.w( 'minSdkVersion %s', androidstudio.minSdkVersion( prj ) )
 	p.w( 'targetSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
 	p.w( 'versionCode 1' )
