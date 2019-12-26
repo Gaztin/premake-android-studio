@@ -24,3 +24,7 @@ end
 function androidstudio.maxSdkVersion( prj )
 	return ( prj.maxsdkversion or '26' )
 end
+
+function androidstudio.getBuildType( cfg )
+	return string.lower( cfg.buildcfg )
+end
