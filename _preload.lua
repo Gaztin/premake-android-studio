@@ -47,7 +47,7 @@ newaction {
 		p.generate( prj, string.format( '%s/build.gradle', prj.name ), m.build_dot_gradle.generateProject )
 		p.generate( prj, string.format( '%s/Android.mk',   prj.name ), m.android_dot_mk.generate )
 
-		if( prj.kind ~= 'ConsoleApp' and prj.kind ~= 'WindowedApp' ) then
+		if( not m.isApp( prj ) ) then
 			p.generate( prj, string.format( '%s/AndroidManifest.xml', prj.name ), m.android_manifest_dot_xml.generate )
 		end
 	end,
