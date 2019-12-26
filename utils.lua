@@ -71,6 +71,8 @@ function androidstudio.findJavaDirs( prj )
 		end
 	end
 
+	table.sort( java_dirs )
+
 	return java_dirs
 end
 
@@ -100,6 +102,8 @@ function androidstudio.findResourceDirs( prj )
 	for dir, _ in pairs( res_dirs_unique_map ) do
 		table.insert( res_dirs, path.getrelative( project_location, dir ) )
 	end
+
+	table.sort( res_dirs )
 
 	return res_dirs
 end
@@ -134,6 +138,8 @@ function androidstudio.findAssetDirs( prj )
 	for dir, _ in pairs( asset_dirs_unique_map ) do
 		table.insert( asset_dirs, path.getrelative( project_location, dir ) )
 	end
+
+	table.sort( asset_dirs )
 
 	return asset_dirs
 end
