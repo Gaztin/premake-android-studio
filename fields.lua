@@ -1,6 +1,12 @@
 local p = premake
 
 p.api.register {
+	name  = 'appid',
+	scope = 'project',
+	kind  = 'string'
+}
+
+p.api.register {
 	name  = 'androidabis',
 	scope = 'project',
 	kind  = 'list:string'

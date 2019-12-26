@@ -59,6 +59,7 @@ end
 
 function m.defaultConfig( prj )
 	m.push( 'defaultConfig' )
+	p.w( 'applicationId \'%s\'', prj.appid )
 	p.w( 'minSdkVersion %s', androidstudio.minSdkVersion( prj ) )
 	p.w( 'targetSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
 	p.w( 'versionCode 1' )
