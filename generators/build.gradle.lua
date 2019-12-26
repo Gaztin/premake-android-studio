@@ -97,17 +97,9 @@ function m.cFlags( cfg )
 	if( cfg.buildoptions and #cfg.buildoptions > 0 ) then
 		m.push( 'externalNativeBuild' )
 		m.push( 'ndkBuild' )
-		
-		-- Encapsulate all buildoptions inside quotation marks
-		for i = 1, #cfg.buildoptions do
-			cfg.buildoptions[ i ] = string.gsub( cfg.buildoptions[ i ], '^' .. cfg.buildoptions[ i ] .. '$',
-				function( str )
-					return ( '\'' .. str .. '\'' )
-				end
-			)
-		end
 
-		p.w( 'cFlags %s', table.concat( cfg.buildoptions, ', ' ) )
+		p.w( 'cFlags \'%s\'', table.concat( cfg.buildoptions, '\', \'' ) )
+
 		m.pop() -- ndkBuild
 		m.pop() -- externalNativeBuild
 	end
