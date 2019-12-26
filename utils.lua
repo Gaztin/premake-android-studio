@@ -29,13 +29,17 @@ function androidstudio.getBuildType( cfg )
 	return string.lower( cfg.buildcfg )
 end
 
-function androidstudio.findFileByName( prj, name )
-	local project_location = string.format( '%s/%s', prj.location, prj.name )
+function androidstudio.findManifest( prj )
+	if( prj.kind == 'ConsoleApp' or prj.kind == 'WindowedApp' ) then
+		local project_location = string.format( '%s/%s', prj.location, prj.name )
 
-	for _, fname in ipairs( prj.files ) do
-		if( path.getname( fname ) == name ) then
-			return path.getrelative( project_location, fname )
+		for _, fname in ipairs( prj.files ) do
+			if( path.getname( fname ) == 'AndroidManifest.xml' ) then
+				return path.getrelative( project_location, fname )
+			end
 		end
+	else
+		return 'AndroidManifest.xml'
 	end
 end
 

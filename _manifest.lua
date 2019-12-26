@@ -12,4 +12,5 @@ return {
 	'generators/gradle.properties.lua',
 	'generators/settings.gradle.lua',
 	'generators/Android.mk.lua',
+	'generators/AndroidManifest.xml.lua',
 }

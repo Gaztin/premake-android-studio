@@ -99,7 +99,7 @@ function m.buildTypes( prj )
 end
 
 function m.sourceSets( prj )
-	local manifest_file = androidstudio.findFileByName( prj, 'AndroidManifest.xml' )
+	local manifest_file = androidstudio.findManifest( prj )
 	local java_dirs     = androidstudio.findJavaDirs( prj )
 
 	m.push( 'sourceSets' )
