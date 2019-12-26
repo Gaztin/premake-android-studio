@@ -141,7 +141,7 @@ function m.cFlags( cfg )
 		m.push( 'externalNativeBuild' )
 		m.push( 'ndkBuild' )
 
-		p.w( 'cFlags \'%s\'', table.concat( cfg.buildoptions, '\', \'' ) )
+		p.w( 'cFlags \'-DPREMAKE_CONFIGURATION=%s\'', cfg.buildcfg )
 
 		m.pop() -- ndkBuild
 		m.pop() -- externalNativeBuild
