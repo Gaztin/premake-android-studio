@@ -100,26 +100,21 @@ function m.buildTypes( prj )
 end
 
 function m.sourceSets( prj )
+	local manifest_file = androidstudio.findFileByName( prj, 'AndroidManifest.xml' )
+	local java_dirs     = androidstudio.findJavaDirs( prj )
+
 	m.push( 'sourceSets' )
+	m.push( 'main' )
 
-	for cfg in p.project.eachconfig( prj ) do
-		local build_type    = androidstudio.getBuildType( cfg )
-		local manifest_file = androidstudio.findFileByName( cfg, 'AndroidManifest.xml' )
-		local java_dirs     = androidstudio.findJavaDirs( cfg )
-
-		m.push( build_type )
-
-		if( manifest_file ) then
-			p.w( 'manifest.srcFile \'%s\'', manifest_file )
-		end
-
-		if( #java_dirs > 0 ) then
-			p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
-		end
-
-		m.pop() -- @build_type
+	if( manifest_file ) then
+		p.w( 'manifest.srcFile \'%s\'', manifest_file )
 	end
 
+	if( #java_dirs > 0 ) then
+		p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
+	end
+
+	m.pop() -- main
 	m.pop() -- sourceSets
 end
 

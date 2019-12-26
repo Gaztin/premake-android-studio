@@ -29,23 +29,26 @@ function androidstudio.getBuildType( cfg )
 	return string.lower( cfg.buildcfg )
 end
 
-function androidstudio.findFileByName( cfg, name )
-	for _, fname in ipairs( cfg.files ) do
+function androidstudio.findFileByName( prj, name )
+	local project_location = string.format( '%s/%s', prj.location, prj.name )
+
+	for _, fname in ipairs( prj.files ) do
 		if( path.getname( fname ) == name ) then
-			return fname
+			return path.getrelative( project_location, fname )
 		end
 	end
 end
 
-function androidstudio.findJavaDirs( cfg )
-	local java_dirs = { }
-	local appid     = cfg.project.appid
+function androidstudio.findJavaDirs( prj )
+	local project_location = string.format( '%s/%s', prj.location, prj.name )
+	local appid            = prj.appid
+	local java_dirs        = { }
 
 	if( appid ) then
 		local java_dirs_unique_map = { }
 		local appid_dir_name       = string.gsub( appid, '[.]', '/' )
 
-		for _, fname in ipairs( cfg.files ) do
+		for _, fname in ipairs( prj.files ) do
 			local appid_dir_index = string.find( fname, appid_dir_name )
 
 			if( appid_dir_index ) then
@@ -56,7 +59,7 @@ function androidstudio.findJavaDirs( cfg )
 		end
 
 		for dir, _ in pairs( java_dirs_unique_map ) do
-			table.insert( java_dirs, dir )
+			table.insert( java_dirs, path.getrelative( project_location, dir ) )
 		end
 	end
 
