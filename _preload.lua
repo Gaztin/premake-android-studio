@@ -45,6 +45,7 @@ newaction {
 	-- Project generator
 	onProject = function( prj )
 		p.generate( prj, string.format( '%s/build.gradle', prj.name ), m.build_dot_gradle.generateProject )
+		p.generate( prj, string.format( '%s/Android.mk',   prj.name ), m.android_dot_mk.generate )
 	end,
 }
 
