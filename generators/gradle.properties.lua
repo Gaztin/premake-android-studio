@@ -9,7 +9,5 @@ androidstudio.gradle_dot_properties = m
 --
 
 function m.generate( wks )
-	p.utf8()
-
 	p.w( 'org.gradle.jvmargs=%s', androidstudio.jvmargs( wks ) )
 end

@@ -9,7 +9,6 @@ androidstudio.build_dot_gradle = m
 --
 
 function m.generateWorkspace( wks )
-	p.utf8()
 	p.indent( '    ' )
 
 	m.push( 'buildscript' )
@@ -34,7 +33,6 @@ end
 --
 
 function m.generateProject( prj )
-	p.utf8()
 	p.indent( '    ' )
 
 	p.w( 'apply plugin: \'com.android.application\'' )

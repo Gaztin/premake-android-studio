@@ -9,7 +9,6 @@ androidstudio.settings_dot_gradle = m
 --
 
 function m.generate( wks )
-	p.utf8()
 
 	for prj in p.workspace.eachproject( wks ) do
 		local project_dir = string.format( '%s/%s', prj.location, prj.name )
