@@ -56,7 +56,7 @@ function androidstudio.findJavaDirs( prj )
 			local appid_dir_index = string.find( fname, appid_dir_name )
 
 			if( appid_dir_index ) then
-				local appid_dir_sub = string.sub( fname, 0, appid_dir_index + string.len( appid_dir_name ) )
+				local appid_dir_sub = string.sub( fname, 0, appid_dir_index - 1 )
 
 				java_dirs_unique_map[ appid_dir_sub ] = 0
 			end
