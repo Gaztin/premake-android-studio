@@ -37,7 +37,7 @@ function m.generate( prj )
 		m.localCIncludes( cfg )
 		m.localCFlags( cfg, toolset )
 		m.localCppFlags( cfg, toolset )
-		m.localLdLibs( cfg )
+		m.localLdLibs( cfg, toolset )
 		m.localLdFlags( cfg, toolset )
 
 		if( i == #configs ) then
@@ -145,8 +145,8 @@ function m.localCppFlags( cfg, toolset )
 	end
 end
 
-function m.localLdLibs( cfg )
-	local links = p.config.getlinks( cfg, 'system', 'name' )
+function m.localLdLibs( cfg, toolset )
+	local links = toolset.getlinks( cfg, true )
 
 	if( #links > 0 ) then
 		p.push( 'LOCAL_LDLIBS := \\' )
