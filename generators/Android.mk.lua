@@ -116,7 +116,12 @@ function m.localCIncludes( cfg )
 end
 
 function m.localCFlags( cfg, toolset )
-	local flags = toolset.getcflags( cfg )
+	local flags   = toolset.getcflags( cfg )
+	local defines = toolset.getdefines( cfg.defines )
+
+	for _, def in ipairs( defines ) do
+		table.insert( flags, def )
+	end
 
 	if( #flags > 0 ) then
 		p.push( 'LOCAL_CFLAGS := \\' )
@@ -131,7 +136,12 @@ function m.localCFlags( cfg, toolset )
 end
 
 function m.localCppFlags( cfg, toolset )
-	local flags = toolset.getcxxflags( cfg )
+	local flags   = toolset.getcxxflags( cfg )
+	local defines = toolset.getdefines( cfg.defines )
+
+	for _, def in ipairs( defines ) do
+		table.insert( flags, def )
+	end
 
 	if( #flags > 0 ) then
 		p.push( 'LOCAL_CPPFLAGS := \\' )
