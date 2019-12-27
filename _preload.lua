@@ -44,8 +44,9 @@ newaction {
 
 	-- Project generator
 	onProject = function( prj )
-		p.generate( prj, string.format( '%s/build.gradle', prj.name ), m.build_dot_gradle.generateProject )
-		p.generate( prj, string.format( '%s/Android.mk',   prj.name ), m.android_dot_mk.generate )
+		p.generate( prj, string.format( '%s/build.gradle',   prj.name ), m.build_dot_gradle.generateProject )
+		p.generate( prj, string.format( '%s/Android.mk',     prj.name ), m.android_dot_mk.generate )
+		p.generate( prj, string.format( '%s/Application.mk', prj.name ), m.application_dot_mk.generate )
 
 		if( not m.isApp( prj ) ) then
 			p.generate( prj, string.format( '%s/AndroidManifest.xml', prj.name ), m.android_manifest_dot_xml.generate )
