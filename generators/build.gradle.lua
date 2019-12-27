@@ -44,7 +44,13 @@ function m.generateProject( prj )
 	m.push( 'android' )
 	p.w( 'compileSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
 	m.defaultConfig( prj )
-	m.externalNativeBuild( prj )
+
+	m.push( 'externalNativeBuild' )
+	m.push( 'ndkBuild' )
+	p.w( 'path \'Android.mk\'' )
+	m.pop() -- ndkBuild
+	m.pop() -- externalNativeBuild
+
 	m.buildTypes( prj )
 	m.sourceSets( prj )
 	m.pop() -- android
@@ -73,15 +79,8 @@ function m.defaultConfig( prj )
 	p.w( 'targetSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
 	p.w( 'versionCode 1' )
 	p.w( 'versionName \'1.0\'' )
-	m.pop() -- defaultConfig
-end
 
-function m.externalNativeBuild( prj )
-	m.push( 'externalNativeBuild' )
-	m.push( 'ndkBuild' )
-	p.w( 'path \'Android.mk\'' )
-	m.pop() -- ndkBuild
-	m.pop() -- externalNativeBuild
+	m.pop() -- defaultConfig
 end
 
 function m.buildTypes( prj )
