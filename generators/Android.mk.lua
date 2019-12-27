@@ -27,6 +27,11 @@ function m.generate( prj )
 	p.outln( '' )
 
 	p.w( 'LOCAL_MODULE := %s', prj.name )
+
+	if( prj.kind == 'SharedLib' ) then
+		p.w( 'LOCAL_ALLOW_UNDEFINED_SYMBOLS := true' )
+	end
+
 	p.outln( '' )
 
 	for i = 1, #configs do
