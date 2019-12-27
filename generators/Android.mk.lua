@@ -19,6 +19,10 @@ function m.generate( prj )
 	p.w( 'LOCAL_PATH := $(call my-dir)' )
 	p.outln( '' )
 
+	if( androidstudio.isApp( prj ) ) then
+		m.includeDependencies( prj )
+	end
+
 	p.w( 'include $(CLEAR_VARS)' )
 	p.outln( '' )
 
@@ -40,6 +44,10 @@ function m.generate( prj )
 		m.localLdLibs( cfg, toolset )
 		m.localLdFlags( cfg, toolset )
 
+		if( androidstudio.isApp( prj ) ) then
+			m.localLibraries( cfg )
+		end
+
 		if( i == #configs ) then
 			p.pop( 'endif' )
 		else
@@ -60,6 +68,15 @@ end
 --
 -- Utility functions
 --
+
+function m.includeDependencies( prj )
+	for i = 1, #prj.links do
+		local link_prj = p.workspace.findproject( prj.workspace, prj.links[ i ] )
+		if( link_prj ) then
+			p.w( 'include %s/%s/Android.mk', path.getrelative( prj.location .. '/' .. prj.name, link_prj.location ), link_prj.name )
+		end
+	end
+end
 
 function m.localSrcFiles( cfg )
 	local local_src_files = { }
@@ -181,6 +198,45 @@ function m.localLdFlags( cfg, toolset )
 		end
 		p.w( '%s', flags[ #flags ] )
 		
+		p.pop()
+	end
+end
+
+function m.localLibraries( cfg )
+	local shared_projects = { }
+	local static_projects = { }
+
+	for _, link in ipairs( cfg.links ) do
+		local link_prj = p.workspace.findproject( cfg.workspace, link )
+
+		if( link_prj ) then
+			if( link_prj.kind == 'StaticLib' ) then
+				table.insert( static_projects, link_prj )
+			elseif( link_prj.kind == 'SharedLib' ) then
+				table.insert( shared_projects, link_prj )
+			end
+		end
+	end
+
+	if( #shared_projects > 0 ) then
+		p.push( 'LOCAL_SHARED_LIBRARIES := \\' )
+
+		for i = 1, ( #shared_projects - 1 ) do
+			p.w( '%s \\', shared_projects[ i ].name )
+		end
+
+		p.w( '%s', shared_projects[ #shared_projects ].name )
+		p.pop()
+	end
+
+	if( #static_projects > 0 ) then
+		p.push( 'LOCAL_STATIC_LIBRARIES := \\' )
+
+		for i = 1, ( #static_projects - 1 ) do
+			p.w( '%s \\', static_projects[ i ].name )
+		end
+
+		p.w( '%s', static_projects[ #static_projects ].name )
 		p.pop()
 	end
 end
