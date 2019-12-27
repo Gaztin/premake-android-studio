@@ -54,6 +54,8 @@ function m.generateProject( prj )
 	m.buildTypes( prj )
 	m.sourceSets( prj )
 	m.pop() -- android
+
+	m.dependencies( prj )
 end
 
 --
@@ -98,7 +100,11 @@ function m.buildTypes( prj )
 		p.w( 'shrinkResources %s', optimize_shrinkResources[ cfg.optimize ] or 'false' )
 		p.w( 'debuggable %s',      symbols_debuggable[ cfg.symbols ]        or 'false' )
 
-		m.cFlags( cfg )
+		m.push( 'externalNativeBuild' )
+		m.push( 'ndkBuild' )
+		p.w( 'arguments \'PREMAKE_CONFIGURATION=%s\'', cfg.buildcfg )
+		m.pop() -- ndkBuild
+		m.pop() -- externalNativeBuild
 
 		m.pop() -- @build_type
 	end
@@ -135,14 +141,24 @@ function m.sourceSets( prj )
 	m.pop() -- sourceSets
 end
 
-function m.cFlags( cfg )
-	if( cfg.buildoptions and #cfg.buildoptions > 0 ) then
-		m.push( 'externalNativeBuild' )
-		m.push( 'ndkBuild' )
+function m.dependencies( prj )
+	local project_links = { }
 
-		p.w( 'cFlags \'-DPREMAKE_CONFIGURATION=%s\'', cfg.buildcfg )
+	for _, link in ipairs( prj.links ) do
+		local link_prj = p.workspace.findproject( prj.workspace, link )
 
-		m.pop() -- ndkBuild
-		m.pop() -- externalNativeBuild
+		if( link_prj ) then
+			table.insert( project_links, link_prj )
+		end
+	end
+
+	if( #project_links > 0 ) then
+		m.push( 'dependencies' )
+
+		for i = 1, #project_links do
+			p.w( 'implementation project( \':%s\' )', project_links[ i ].name )
+		end
+
+		m.pop()
 	end
 end
