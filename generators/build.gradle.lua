@@ -108,7 +108,7 @@ function m.buildTypes( prj )
 
 		m.push( 'externalNativeBuild' )
 		m.push( 'ndkBuild' )
-		p.w( 'arguments \'PREMAKE_CONFIGURATION=%s\'', cfg.buildcfg )
+		m.ndkBuildArguments( cfg )
 		m.pop() -- ndkBuild
 		m.pop() -- externalNativeBuild
 
@@ -167,4 +167,16 @@ function m.dependencies( prj )
 
 		m.pop()
 	end
+end
+
+function m.ndkBuildArguments( cfg )
+	local args = {
+		'PREMAKE_CONFIGURATION=' .. cfg.buildcfg,
+	}
+
+	if( cfg.flags.MultiProcessorCompile ) then
+		table.insert( args, '-j4' )
+	end
+
+	p.w( 'arguments \'%s\'', table.concat( args, '\', \'' ) )
 end
