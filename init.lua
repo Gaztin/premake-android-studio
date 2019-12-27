@@ -8,3 +8,10 @@ include( 'generators/settings.gradle.lua' )
 include( 'generators/Android.mk.lua' )
 include( 'generators/Application.mk.lua' )
 include( 'generators/AndroidManifest.xml.lua' )
+
+-- Set default prefix and extension for app binaries
+filter { "system:android", "kind:ConsoleApp or WindowedApp" }
+	targetprefix "lib"
+	targetextension ".so"
+
+filter { }
