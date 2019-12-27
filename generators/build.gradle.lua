@@ -82,6 +82,12 @@ function m.defaultConfig( prj )
 	p.w( 'versionCode 1' )
 	p.w( 'versionName \'1.0\'' )
 
+	if( #prj.androidabis > 0 ) then
+		m.push( 'ndk' )
+		p.w( 'abiFilters \'%s\'', table.concat( prj.androidabis, '\', \'' ) )
+		m.pop()
+	end
+
 	m.pop() -- defaultConfig
 end
 
