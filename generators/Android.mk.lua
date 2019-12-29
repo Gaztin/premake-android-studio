@@ -74,11 +74,15 @@ end
 -- Utility functions
 --
 
+function m.getrelative( prj, dest )
+	return path.getrelative( prj.location .. '/' .. prj.name, dest )
+end
+
 function m.includeDependencies( prj )
 	for i = 1, #prj.links do
 		local link_prj = p.workspace.findproject( prj.workspace, prj.links[ i ] )
 		if( link_prj ) then
-			p.w( 'include %s/%s/Android.mk', path.getrelative( prj.location .. '/' .. prj.name, link_prj.location ), link_prj.name )
+			p.w( 'include %s/%s/Android.mk', m.getrelative( prj, link_prj.location ), link_prj.name )
 		end
 	end
 end
@@ -88,7 +92,7 @@ function m.localSrcFiles( cfg )
 
 	for _, fpath in ipairs( cfg.files ) do
 		if( path.iscppfile( fpath ) or path.iscfile( fpath ) ) then
-			table.insert( local_src_files, fpath )
+			table.insert( local_src_files, m.getrelative( cfg.project, fpath ) )
 		end
 	end
 
@@ -129,9 +133,9 @@ function m.localCIncludes( cfg )
 		p.push( 'LOCAL_C_INCLUDES := \\' )
 
 		for i = 1, ( #cfg.includedirs - 1 ) do
-			p.w( '%s \\', cfg.includedirs[ i ] )
+			p.w( '%s \\', m.getrelative( cfg.project, cfg.includedirs[ i ] ) )
 		end
-		p.w( '%s', cfg.includedirs[ #cfg.includedirs ] )
+		p.w( '%s', m.getrelative( cfg.project, cfg.includedirs[ #cfg.includedirs ] ) )
 
 		p.pop()
 	end
