@@ -120,28 +120,19 @@ function m.buildTypes( prj )
 end
 
 function m.sourceSets( prj )
-	local manifest_file = androidstudio.findManifest( prj )
-	local java_dirs     = androidstudio.findJavaDirs( prj )
-	local res_dirs      = androidstudio.findResourceDirs( prj )
-	local asset_dirs    = androidstudio.findAssetDirs( prj )
-
 	m.push 'sourceSets'
 	m.push 'main'
 
-	if manifest_file then
-		p.w( 'manifest.srcFile \'%s\'', manifest_file )
-	end
+	p.w( 'manifest.srcFile \'%s\'', prj.androidmanifest )
 
-	if #java_dirs > 0 then
-		p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
+	if #prj.javadirs > 0 then
+		p.w( 'java.srcDirs %s', table.implode( prj.javadirs, '\'', '\'', ', ' ) )
 	end
-
-	if #res_dirs > 0 then
-		p.w( 'res.srcDirs \'%s\'', table.concat( res_dirs, '\', \'' ) )
+	if #prj.resdirs > 0 then
+		p.w( 'res.srcDirs %s', table.implode( prj.resdirs, '\'', '\'', ', ' ) )
 	end
-
-	if #asset_dirs > 0 then
-		p.w( 'assets.srcDirs \'%s\'', table.concat( asset_dirs, '\', \'' ) )
+	if #prj.assetdirs > 0 then
+		p.w( 'assets.srcDirs %s', table.implode( prj.assetdirs, '\'', '\'', ', ' ) )
 	end
 
 	m.pop '' -- main

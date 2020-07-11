@@ -20,6 +20,24 @@ p.api.register {
 }
 
 p.api.register {
+	name  = 'javadirs',
+	scope = 'project',
+	kind  = 'list:directory',
+}
+
+p.api.register {
+	name  = 'resdirs',
+	scope = 'project',
+	kind  = 'list:directory',
+}
+
+p.api.register {
+	name  = 'androidmanifest',
+	scope = 'project',
+	kind  = 'file',
+}
+
+p.api.register {
 	name    = 'gradleversion',
 	scope   = 'workspace',
 	kind    = 'string',
