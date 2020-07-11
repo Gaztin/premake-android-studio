@@ -175,7 +175,7 @@ function m.ndkBuildArguments( cfg )
 	}
 
 	if cfg.flags.MultiProcessorCompile then
-		table.insert( args, '-j4' )
+		table.insert( args, '-j' )
 	end
 
 	p.w( 'arguments \'%s\'', table.concat( args, '\', \'' ) )
