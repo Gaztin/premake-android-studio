@@ -40,6 +40,7 @@ function m.generateProject( prj )
 	else
 		p.w 'apply plugin: \'com.android.library\''
 	end
+	p.outln ''
 
 	m.push 'android'
 	p.w( 'compileSdkVersion %s', prj.maxsdkversion )
