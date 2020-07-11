@@ -1,17 +1,21 @@
--- Fix for when the module isn't embedded
-include( '_preload.lua' )
-include( 'fields.lua' )
-include( 'utils.lua' )
-include( 'generators/build.gradle.lua' )
-include( 'generators/gradle.properties.lua' )
-include( 'generators/settings.gradle.lua' )
-include( 'generators/Android.mk.lua' )
-include( 'generators/Application.mk.lua' )
-include( 'generators/AndroidManifest.xml.lua' )
+require '_preload'
+require 'fields'
+require 'utils'
+require 'generators/Android.mk'
+require 'generators/AndroidManifest.xml'
+require 'generators/Application.mk'
+require 'generators/build.gradle'
+require 'generators/gradle.properties'
+require 'generators/settings.gradle'
 
 -- Set default prefix and extension for app binaries
-filter { "system:android", "kind:ConsoleApp or WindowedApp" }
-	targetprefix "lib"
-	targetextension ".so"
-
-filter { }
+if _ACTION == 'android-studio' then
+	appid 'com.example.app'
+	gradleversion '3.0.0'
+	jvmargs { '-Xmx2048m' }
+	maxsdkversion '26'
+	minsdkversion '15'
+	targetextension '.so'
+	targetprefix 'lib'
+	toolset 'clang'
+end

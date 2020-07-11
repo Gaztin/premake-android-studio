@@ -17,9 +17,9 @@ end
 --
 
 function m.appStl( prj )
-	if( prj.staticruntime == 'on' ) then
-		p.w( 'APP_STL := c++_static' )
+	if prj.staticruntime and prj.staticruntime == 'On' then
+		p.w 'APP_STL := c++_static'
 	else
-		p.w( 'APP_STL := c++_shared' )
+		p.w 'APP_STL := c++_shared'
 	end
 end

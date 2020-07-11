@@ -9,23 +9,23 @@ androidstudio.build_dot_gradle = m
 --
 
 function m.generateWorkspace( wks )
-	p.indent( '    ' )
+	p.indent '    '
 
-	m.push( 'buildscript' )
-	m.push( 'repositories' )
-	p.w( 'jcenter()' )
-	p.w( 'google()' )
-	m.pop() -- repositories
-	m.push( 'dependencies' )
-	p.w( 'classpath \'com.android.tools.build:gradle:%s\'', androidstudio.gradleVersion( wks ) )
-	m.pop() -- dependencies
-	m.pop() -- buildscript
-	m.push( 'allprojects' )
-	m.push( 'repositories' )
-	p.w( 'jcenter()' )
-	p.w( 'google()' )
-	m.pop() -- repositories
-	m.pop() -- allprojects
+	m.push 'buildscript'
+	m.push 'repositories'
+	p.w 'jcenter()'
+	p.w 'google()'
+	m.pop '' -- repositories
+	m.push 'dependencies'
+	p.w( 'classpath \'com.android.tools.build:gradle:%s\'', wks.gradleversion )
+	m.pop '' -- dependencies
+	m.pop '' -- buildscript
+	m.push 'allprojects'
+	m.push 'repositories'
+	p.w 'jcenter()'
+	p.w 'google()'
+	m.pop '' -- repositories
+	m.pop '' -- allprojects
 end
 
 --
@@ -33,27 +33,27 @@ end
 --
 
 function m.generateProject( prj )
-	p.indent( '    ' )
+	p.indent '    '
 
-	if( androidstudio.isApp( prj ) ) then
-		p.w( 'apply plugin: \'com.android.application\'' )
+	if androidstudio.isApp( prj ) then
+		p.w 'apply plugin: \'com.android.application\''
 	else
-		p.w( 'apply plugin: \'com.android.library\'' )
+		p.w 'apply plugin: \'com.android.library\''
 	end
 
-	m.push( 'android' )
-	p.w( 'compileSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
+	m.push 'android'
+	p.w( 'compileSdkVersion %s', prj.maxsdkversion )
 	m.defaultConfig( prj )
 
-	m.push( 'externalNativeBuild' )
-	m.push( 'ndkBuild' )
-	p.w( 'path \'Android.mk\'' )
-	m.pop() -- ndkBuild
-	m.pop() -- externalNativeBuild
+	m.push 'externalNativeBuild'
+	m.push 'ndkBuild'
+	p.w 'path \'Android.mk\''
+	m.pop '' -- ndkBuild
+	m.pop '' -- externalNativeBuild
 
 	m.buildTypes( prj )
 	m.sourceSets( prj )
-	m.pop() -- android
+	m.pop '' -- android
 
 	m.dependencies( prj )
 end
@@ -63,32 +63,32 @@ end
 --
 
 function m.push( name )
-	p.push( name .. ' {' )
+	p.push( '%s {', name )
 end
 
-function m.pop()
+function m.pop( _ )
 	p.pop( '}' )
 end
 
 function m.defaultConfig( prj )
-	m.push( 'defaultConfig' )
+	m.push 'defaultConfig'
 
-	if( androidstudio.isApp( prj ) ) then
+	if androidstudio.isApp( prj ) then
 		p.w( 'applicationId \'%s\'', prj.appid )
 	end
 
-	p.w( 'minSdkVersion %s', androidstudio.minSdkVersion( prj ) )
-	p.w( 'targetSdkVersion %s', androidstudio.maxSdkVersion( prj ) )
-	p.w( 'versionCode 1' )
-	p.w( 'versionName \'1.0\'' )
+	p.w( 'minSdkVersion %s', prj.minsdkversion )
+	p.w( 'targetSdkVersion %s', prj.maxsdkversion )
+	p.w 'versionCode 1'
+	p.w 'versionName \'1.0\''
 
-	if( #prj.androidabis > 0 ) then
-		m.push( 'ndk' )
+	if #prj.androidabis > 0 then
+		m.push 'ndk'
 		p.w( 'abiFilters \'%s\'', table.concat( prj.androidabis, '\', \'' ) )
-		m.pop()
+		m.pop ''
 	end
 
-	m.pop() -- defaultConfig
+	m.pop '' -- defaultConfig
 end
 
 function m.buildTypes( prj )
@@ -96,7 +96,7 @@ function m.buildTypes( prj )
 	local optimize_shrinkResources = { Size = 'true' }
 	local symbols_debuggable       = { On   = 'true' }
 
-	m.push( 'buildTypes' )
+	m.push 'buildTypes'
 
 	for cfg in p.project.eachconfig( prj ) do
 		local build_type = androidstudio.getBuildType( cfg )
@@ -106,16 +106,16 @@ function m.buildTypes( prj )
 		p.w( 'shrinkResources %s', optimize_shrinkResources[ cfg.optimize ] or 'false' )
 		p.w( 'debuggable %s',      symbols_debuggable[ cfg.symbols ]        or 'false' )
 
-		m.push( 'externalNativeBuild' )
-		m.push( 'ndkBuild' )
+		m.push 'externalNativeBuild'
+		m.push 'ndkBuild'
 		m.ndkBuildArguments( cfg )
-		m.pop() -- ndkBuild
-		m.pop() -- externalNativeBuild
+		m.pop '' -- ndkBuild
+		m.pop '' -- externalNativeBuild
 
-		m.pop() -- @build_type
+		m.pop '' -- @build_type
 	end
 
-	m.pop() -- buildTypes
+	m.pop '' -- buildTypes
 end
 
 function m.sourceSets( prj )
@@ -124,27 +124,27 @@ function m.sourceSets( prj )
 	local res_dirs      = androidstudio.findResourceDirs( prj )
 	local asset_dirs    = androidstudio.findAssetDirs( prj )
 
-	m.push( 'sourceSets' )
-	m.push( 'main' )
+	m.push 'sourceSets'
+	m.push 'main'
 
-	if( manifest_file ) then
+	if manifest_file then
 		p.w( 'manifest.srcFile \'%s\'', manifest_file )
 	end
 
-	if( #java_dirs > 0 ) then
+	if #java_dirs > 0 then
 		p.w( 'java.srcDirs \'%s\'', table.concat( java_dirs, '\', \'' ) )
 	end
 
-	if( #res_dirs > 0 ) then
+	if #res_dirs > 0 then
 		p.w( 'res.srcDirs \'%s\'', table.concat( res_dirs, '\', \'' ) )
 	end
 
-	if( #asset_dirs > 0 ) then
+	if #asset_dirs > 0 then
 		p.w( 'assets.srcDirs \'%s\'', table.concat( asset_dirs, '\', \'' ) )
 	end
 
-	m.pop() -- main
-	m.pop() -- sourceSets
+	m.pop '' -- main
+	m.pop '' -- sourceSets
 end
 
 function m.dependencies( prj )
@@ -153,19 +153,19 @@ function m.dependencies( prj )
 	for _, link in ipairs( prj.links ) do
 		local link_prj = p.workspace.findproject( prj.workspace, link )
 
-		if( link_prj ) then
+		if link_prj then
 			table.insert( project_links, link_prj )
 		end
 	end
 
-	if( #project_links > 0 ) then
-		m.push( 'dependencies' )
+	if #project_links > 0 then
+		m.push 'dependencies'
 
 		for i = 1, #project_links do
 			p.w( 'implementation project( \':%s\' )', project_links[ i ].name )
 		end
 
-		m.pop()
+		m.pop ''
 	end
 end
 
@@ -174,7 +174,7 @@ function m.ndkBuildArguments( cfg )
 		'PREMAKE_CONFIGURATION=' .. cfg.buildcfg,
 	}
 
-	if( cfg.flags.MultiProcessorCompile ) then
+	if cfg.flags.MultiProcessorCompile then
 		table.insert( args, '-j4' )
 	end
 

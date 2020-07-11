@@ -48,7 +48,7 @@ newaction {
 		p.generate( prj, string.format( '%s/Android.mk',     prj.name ), m.android_dot_mk.generate )
 		p.generate( prj, string.format( '%s/Application.mk', prj.name ), m.application_dot_mk.generate )
 
-		if( not m.isApp( prj ) ) then
+		if not m.isApp( prj ) then
 			p.generate( prj, string.format( '%s/AndroidManifest.xml', prj.name ), m.android_manifest_dot_xml.generate )
 		end
 	end,
@@ -59,5 +59,5 @@ newaction {
 --
 
 return function( cfg )
-	return ( _ACTION == 'gradle' )
+	return _ACTION == 'android-studio'
 end
