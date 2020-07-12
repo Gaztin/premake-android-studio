@@ -37,21 +37,21 @@ newaction {
 
 	-- Workspace generator
 	onWorkspace = function( wks )
-		p.generate( wks, 'build.gradle',      m.build_dot_gradle.generateWorkspace )
+		p.generate( wks, 'build.gradle', m.build_dot_gradle.generateWorkspace )
 		p.generate( wks, 'gradle.properties', m.gradle_dot_properties.generate )
-		p.generate( wks, 'settings.gradle',   m.settings_dot_gradle.generate )
+		p.generate( wks, 'settings.gradle', m.settings_dot_gradle.generate )
 	end,
 
 	-- Project generator
 	onProject = function( prj )
 		if not prj.androidmanifest then
-			prj.androidmanifest = string.format( '%s.AndroidManifest.xml', prj.name )
+			prj.androidmanifest = 'AndroidManifest.xml'
 			p.generate( prj, prj.androidmanifest, m.android_manifest_dot_xml.generate )
 		end
 		
-		p.generate( prj, string.format( '%s.build.gradle',   prj.name ), m.build_dot_gradle.generateProject )
-		p.generate( prj, string.format( '%s.Android.mk',     prj.name ), m.android_dot_mk.generate )
-		p.generate( prj, string.format( '%s.Application.mk', prj.name ), m.application_dot_mk.generate )
+		p.generate( prj, 'build.gradle', m.build_dot_gradle.generateProject )
+		p.generate( prj, 'Android.mk', m.android_dot_mk.generate )
+		p.generate( prj, 'Application.mk', m.application_dot_mk.generate )
 	end,
 }
 

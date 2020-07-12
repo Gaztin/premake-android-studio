@@ -1,6 +1,8 @@
 require '_preload'
+require 'customizations'
 require 'fields'
 require 'utils'
+
 require 'generators/Android.mk'
 require 'generators/AndroidManifest.xml'
 require 'generators/Application.mk'
