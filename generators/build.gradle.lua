@@ -48,7 +48,7 @@ function m.generateProject( prj )
 
 	m.push 'externalNativeBuild'
 	m.push 'ndkBuild'
-	p.w( 'path \'%s.Android.mk\'', prj.name )
+	p.w 'path \'Android.mk\''
 	m.pop '' -- ndkBuild
 	m.pop '' -- externalNativeBuild
 
