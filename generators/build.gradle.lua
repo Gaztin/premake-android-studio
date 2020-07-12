@@ -155,7 +155,7 @@ function m.ndkBuildTasks( prj )
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
 	p.push 'exec {'
-	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'-d\', \'-C\', file( \'.\' ).absoluteFile, \'-f\', file( \'Application.mk\' ).absolutePath, \'NDK_APPLICATION_MK=\' + file( \'Application.mk\' ).absoluteFile, \'NDK_PROJECT_PATH=\' + file( \'.\' ).absoluteFile, \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\'' )
+	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'-C\', file( \'.\' ).absoluteFile, \'NDK_APPLICATION_MK=\' + file( \'Application.mk\' ).absoluteFile, \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\'' )
 	p.pop '}'
 	p.pop '}'
 	p.pop '}'
