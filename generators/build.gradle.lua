@@ -100,9 +100,9 @@ function m.buildTypes( prj )
 	m.push 'buildTypes'
 
 	for cfg in p.project.eachconfig( prj ) do
-		local build_type = androidstudio.getBuildType( cfg )
+		local build_type = string.lower( cfg.buildcfg )
 
-		m.push( build_type )
+		m.push( '\''..build_type..'\'' )
 		p.w( 'minifyEnabled %s',   optimize_minifyEnabled[ cfg.optimize ]   or 'false' )
 		p.w( 'shrinkResources %s', optimize_shrinkResources[ cfg.optimize ] or 'false' )
 		p.w( 'debuggable %s',      symbols_debuggable[ cfg.symbols ]        or 'false' )

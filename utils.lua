@@ -8,7 +8,3 @@ local androidstudio = p.extensions.androidstudio
 function androidstudio.isApp( prj )
 	return prj.kind == 'ConsoleApp' or prj.kind == 'WindowedApp'
 end
-
-function androidstudio.getBuildType( cfg )
-	return string.lower( cfg.buildcfg )
-end
