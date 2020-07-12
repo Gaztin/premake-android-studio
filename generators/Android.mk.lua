@@ -23,10 +23,9 @@ function m.generate( prj )
 	if androidstudio.isApp( prj ) then
 		m.includeDependencies( prj )
 	end
-
-	p.w 'include $(CLEAR_VARS)'
 	p.outln ''
 
+	p.w 'include $(CLEAR_VARS)'
 	p.w( 'LOCAL_MODULE := %s', prj.name )
 
 	if prj.kind == 'SharedLib' then
@@ -39,7 +38,7 @@ function m.generate( prj )
 		local cfg     = configs[ i ]
 		local toolset = p.config.toolset( cfg )
 
-		p.push( 'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
+		p.push( '%sifeq ($(PREMAKE_CONFIGURATION),%s)', i > 1 and 'else ' or '', cfg.buildcfg )
 
 		m.localModuleFilename( cfg )
 		m.localSrcFiles( cfg )
@@ -57,8 +56,7 @@ function m.generate( prj )
 		if i == #configs then
 			p.pop 'endif'
 		else
-			p.pop ''
-			p.out 'else '
+			p.pop()
 		end
 	end
 	p.outln ''
@@ -100,14 +98,7 @@ function m.localSrcFiles( cfg )
 	end
 
 	if #local_src_files > 0 then
-		p.push 'LOCAL_SRC_FILES := \\'
-
-		for i = 1, #local_src_files - 1 do
-			p.w( '%s \\', local_src_files[ i ] )
-		end
-		p.w( '%s', local_src_files[ #local_src_files ] )
-
-		p.pop ''
+		p.w( 'LOCAL_SRC_FILES := %s', table.concat( local_src_files, ' ' ) )
 	end
 end
 
@@ -133,14 +124,9 @@ end
 
 function m.localCIncludes( cfg )
 	if #cfg.includedirs > 0 then
-		p.push 'LOCAL_C_INCLUDES := \\'
+		local relative_includedirs = p.project.getrelative( cfg.project, cfg.includedirs )
 
-		for i = 1, ( #cfg.includedirs - 1 ) do
-			p.w( '%s \\', p.project.getrelative( cfg.project, cfg.includedirs[ i ] ) )
-		end
-		p.w( '%s', p.project.getrelative( cfg.project, cfg.includedirs[ #cfg.includedirs ] ) )
-
-		p.pop ''
+		p.w( 'LOCAL_C_INCLUDES := %s', table.concat( relative_includedirs, ' ' ) )
 	end
 end
 
@@ -148,19 +134,8 @@ function m.localCFlags( cfg, toolset )
 	local flags   = toolset.getcflags( cfg )
 	local defines = toolset.getdefines( cfg.defines )
 
-	for _, def in ipairs( defines ) do
-		table.insert( flags, def )
-	end
-
 	if #flags > 0 then
-		p.push 'LOCAL_CFLAGS := \\'
-
-		for i = 1, #flags - 1 do
-			p.w( '%s \\', flags[ i ] )
-		end
-		p.w( '%s', flags[ #flags ] )
-
-		p.pop ''
+		p.w( 'LOCAL_CFLAGS := %s %s', table.concat( flags, ' ' ), table.concat( defines, ' ' ) )
 	end
 end
 
@@ -168,19 +143,8 @@ function m.localCppFlags( cfg, toolset )
 	local flags   = toolset.getcxxflags( cfg )
 	local defines = toolset.getdefines( cfg.defines )
 
-	for _, def in ipairs( defines ) do
-		table.insert( flags, def )
-	end
-
 	if #flags > 0 then
-		p.push 'LOCAL_CPPFLAGS := \\'
-
-		for i = 1, #flags - 1 do
-			p.w( '%s \\', flags[ i ] )
-		end
-		p.w( '%s', flags[ #flags ] )
-		
-		p.pop ''
+		p.w( 'LOCAL_CPPFLAGS := %s %s', table.concat( flags, ' ' ), table.concat( defines, ' ' ) )
 	end
 end
 
@@ -188,14 +152,7 @@ function m.localLdLibs( cfg, toolset )
 	local links = toolset.getlinks( cfg, true )
 
 	if #links > 0 then
-		p.push 'LOCAL_LDLIBS := \\'
-
-		for i = 1, #links - 1 do
-			p.w( '%s \\', links[ i ] )
-		end
-		p.w( '%s', links[ #links ] )
-		
-		p.pop ''
+		p.w( 'LOCAL_LDLIBS := %s', table.concat( links, ' ' ) )
 	end
 end
 
@@ -203,53 +160,28 @@ function m.localLdFlags( cfg, toolset )
 	local flags = toolset.getldflags( cfg )
 
 	if #flags > 0 then
-		p.push 'LOCAL_LDFLAGS := \\'
-
-		for i = 1, #flags - 1 do
-			p.w( '%s \\', flags[ i ] )
-		end
-		p.w( '%s', flags[ #flags ] )
-		
-		p.pop ''
+		p.w( 'LOCAL_LDFLAGS := %s', table.concat( flags, ' ' ) )
 	end
 end
 
 function m.localLibraries( cfg )
-	local shared_projects = { }
-	local static_projects = { }
+	local static_libs = { }
+	local shared_libs = { }
 
-	for _, link in ipairs( cfg.links ) do
-		local link_prj = p.workspace.findproject( cfg.workspace, link )
-
-		if link_prj then
-			if link_prj.kind == 'StaticLib' then
-				table.insert( static_projects, link_prj )
-			elseif link_prj.kind == 'SharedLib' then
-				table.insert( shared_projects, link_prj )
-			end
+	for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
+		if dependency.kind == p.STATICLIB then
+			table.insert( static_libs, dependency.name )
+		elseif dependency.kind == p.SHAREDLIB then
+			table.insert( shared_libs, dependency.name )
 		end
 	end
 
-	if #shared_projects > 0 then
-		p.push 'LOCAL_SHARED_LIBRARIES := \\'
-
-		for i = 1, #shared_projects - 1 do
-			p.w( '%s \\', shared_projects[ i ].name )
-		end
-		p.w( '%s', shared_projects[ #shared_projects ].name )
-
-		p.pop ''
-	end
-
-	if #static_projects > 0 then
+	if #static_libs > 0 then
 		-- TODO: LOCAL_WHOLE_STATIC_LIBRARIES
-		p.push 'LOCAL_STATIC_LIBRARIES := \\'
+		p.w( 'LOCAL_STATIC_LIBRARIES := %s', table.concat( static_libs, ' ' ) )
+	end
 
-		for i = 1, #static_projects - 1 do
-			p.w( '%s \\', static_projects[ i ].name )
-		end
-		p.w( '%s', static_projects[ #static_projects ].name )
-
-		p.pop ''
+	if #shared_libs > 0 then
+		p.w( 'LOCAL_SHARED_LIBRARIES := %s', table.concat( shared_libs, ' ' ) )
 	end
 end
