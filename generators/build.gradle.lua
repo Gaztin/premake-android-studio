@@ -108,13 +108,6 @@ function m.buildTypes( prj )
 		p.w( 'minifyEnabled %s',   optimize_minifyEnabled[ cfg.optimize ]   or 'false' )
 		p.w( 'shrinkResources %s', optimize_shrinkResources[ cfg.optimize ] or 'false' )
 		p.w( 'debuggable %s',      symbols_debuggable[ cfg.symbols ]        or 'false' )
-
-		m.push 'externalNativeBuild'
-		m.push 'ndkBuild'
-		m.ndkBuildArguments( cfg )
-		m.pop '' -- ndkBuild
-		m.pop '' -- externalNativeBuild
-
 		m.pop '' -- @build_type
 	end
 
@@ -191,16 +184,4 @@ function m.dependencies( prj )
 
 		m.pop ''
 	end
-end
-
-function m.ndkBuildArguments( cfg )
-	local args = {
-		'PREMAKE_CONFIGURATION=' .. cfg.buildcfg,
-	}
-
-	if cfg.flags.MultiProcessorCompile then
-		table.insert( args, '-j' )
-	end
-
-	p.w( 'arguments \'%s\'', table.concat( args, '\', \'' ) )
 end
