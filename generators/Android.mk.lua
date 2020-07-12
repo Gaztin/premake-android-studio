@@ -41,6 +41,7 @@ function m.generate( prj )
 		p.push( '%sifeq ($(PREMAKE_CONFIGURATION),%s)', i > 1 and 'else ' or '', cfg.buildcfg )
 
 		m.localModuleFilename( cfg )
+		m.declareDependencies( cfg )
 		m.localSrcFiles( cfg )
 		m.localCppFeatures( cfg )
 		m.localCIncludes( cfg )
@@ -73,19 +74,6 @@ end
 -- Utility functions
 --
 
-function m.includeDependencies( prj )
-	for i = 1, #prj.links do
-		local link_prj = p.workspace.findproject( prj.workspace, prj.links[ i ] )
-
-		if link_prj then
-			local relative_location = p.project.getrelative( prj, link_prj.location )
-			local android_mk        = path.join( relative_location, 'Android.mk' )
-
-			p.w( 'include %s', android_mk )
-		end
-	end
-end
-
 function m.localSrcFiles( cfg )
 	local local_src_files = { }
 
@@ -104,6 +92,24 @@ end
 
 function m.localModuleFilename( cfg )
 	p.w( 'LOCAL_MODULE_FILENAME := %s%s', cfg.buildtarget.prefix, cfg.buildtarget.basename )
+end
+
+function m.declareDependencies( cfg )
+	for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
+		local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+
+		p.w 'include $(CLEAR_VARS)'
+		p.w( 'LOCAL_MODULE := %s%s', buildtargetinfo.prefix, buildtargetinfo.basename )
+		p.w( 'LOCAL_SRC_FILES := %s', buildtargetinfo.abspath )
+
+		if dependency.kind == p.STATICLIB then
+			p.w 'include $(PREBUILT_STATIC_LIBRARY)'
+		else
+			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
+		end
+
+		p.outln ''
+	end
 end
 
 function m.localCppFeatures( cfg )

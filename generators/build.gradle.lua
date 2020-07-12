@@ -49,6 +49,7 @@ function m.generateProject( prj )
 	m.push 'externalNativeBuild'
 	m.push 'ndkBuild'
 	p.w 'path \'Android.mk\''
+	p.w( 'buildStagingDirectory \'%s\'', p.project.getfirstconfig( prj ).buildtarget.directory )
 	m.pop '' -- ndkBuild
 	m.pop '' -- externalNativeBuild
 
@@ -56,6 +57,7 @@ function m.generateProject( prj )
 	m.sourceSets( prj )
 	m.pop '' -- android
 
+	m.ndkBuildTasks( prj )
 	m.dependencies( prj )
 end
 
@@ -135,8 +137,38 @@ function m.sourceSets( prj )
 		p.w( 'assets.srcDirs %s', table.implode( p.project.getrelative( prj, prj.assetdirs ), '\'', '\'', ', ' ) )
 	end
 
+	-- Disable automatic ndkBuild tasks
+	p.w 'jni.srcDirs = []'
+
 	m.pop '' -- main
 	m.pop '' -- sourceSets
+end
+
+function m.ndkBuildTasks( prj )
+	p.push 'android.buildTypes.all { buildType ->'
+	p.w 'String ndkBuildTaskName = \'ndkBuild_\' + buildType.name'
+	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
+	p.push 'if( ndkBuildTask == null ) {'
+
+	local ndk_build_ext = os.ishost( 'windows' ) and '.cmd' or ''
+
+	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
+	p.push 'doLast {'
+	p.push 'exec {'
+	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'-d\', \'-C\', file( \'.\' ).absoluteFile, \'-f\', file( \'Application.mk\' ).absolutePath, \'NDK_APPLICATION_MK=\' + file( \'Application.mk\' ).absoluteFile, \'NDK_PROJECT_PATH=\' + file( \'.\' ).absoluteFile, \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\'' )
+	p.pop '}'
+	p.pop '}'
+	p.pop '}'
+
+	p.push 'tasks.withType( JavaCompile ) { javaCompileTask ->'
+	p.w 'String javaCompileTaskName = javaCompileTask.name'
+	p.push 'if( javaCompileTaskName.toLowerCase().startsWith( \'compile\' + buildType.name ) ) {'
+	p.w 'javaCompileTask.dependsOn ndkBuildTask'
+	p.pop '}'
+	p.pop '}'
+
+	p.pop '}'
+	p.pop '}'
 end
 
 function m.dependencies( prj )
