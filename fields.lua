@@ -8,33 +8,38 @@ p.api.register {
 }
 
 p.api.register {
-	name  = 'androidabis',
-	scope = 'project',
-	kind  = 'list:string',
+	name   = 'androidabis',
+	scope  = 'project',
+	kind   = 'list:string',
+	tokens = true,
 }
 
 p.api.register {
-	name  = 'assetdirs',
-	scope = 'project',
-	kind  = 'list:directory',
+	name   = 'assetdirs',
+	scope  = 'project',
+	kind   = 'list:directory',
+	tokens = true,
 }
 
 p.api.register {
-	name  = 'javadirs',
-	scope = 'project',
-	kind  = 'list:directory',
+	name   = 'javadirs',
+	scope  = 'project',
+	kind   = 'list:directory',
+	tokens = true,
 }
 
 p.api.register {
-	name  = 'resdirs',
-	scope = 'project',
-	kind  = 'list:directory',
+	name   = 'resdirs',
+	scope  = 'project',
+	kind   = 'list:directory',
+	tokens = true,
 }
 
 p.api.register {
-	name  = 'androidmanifest',
-	scope = 'project',
-	kind  = 'file',
+	name   = 'androidmanifest',
+	scope  = 'project',
+	kind   = 'file',
+	tokens = true,
 }
 
 p.api.register {
@@ -45,9 +50,10 @@ p.api.register {
 }
 
 p.api.register {
-	name  = 'jvmargs',
-	scope = 'workspace',
-	kind  = 'list:string',
+	name   = 'jvmargs',
+	scope  = 'workspace',
+	kind   = 'list:string',
+	tokens = true,
 }
 
 p.api.register {
