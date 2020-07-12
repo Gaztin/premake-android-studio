@@ -17,7 +17,6 @@ function m.generate( wks )
 
 		p.w( 'include( \':%s\' )', prj.name )
 		p.w( 'project( \':%s\' ).projectDir = file( \'%s\' )', prj.name, relative_location )
-		p.w( 'project( \':%s\' ).buildFileName = file( \'%s.build.gradle\' )', prj.name, prj.name )
 		p.outln ''
 	end
 end
