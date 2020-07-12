@@ -123,16 +123,16 @@ function m.sourceSets( prj )
 	m.push 'sourceSets'
 	m.push 'main'
 
-	p.w( 'manifest.srcFile \'%s\'', prj.androidmanifest )
+	p.w( 'manifest.srcFile \'%s\'', p.project.getrelative( prj, prj.androidmanifest ) )
 
 	if #prj.javadirs > 0 then
-		p.w( 'java.srcDirs %s', table.implode( prj.javadirs, '\'', '\'', ', ' ) )
+		p.w( 'java.srcDirs %s', table.implode( p.project.getrelative( prj, prj.javadirs ), '\'', '\'', ', ' ) )
 	end
 	if #prj.resdirs > 0 then
-		p.w( 'res.srcDirs %s', table.implode( prj.resdirs, '\'', '\'', ', ' ) )
+		p.w( 'res.srcDirs %s', table.implode( p.project.getrelative( prj, prj.resdirs ), '\'', '\'', ', ' ) )
 	end
 	if #prj.assetdirs > 0 then
-		p.w( 'assets.srcDirs %s', table.implode( prj.assetdirs, '\'', '\'', ', ' ) )
+		p.w( 'assets.srcDirs %s', table.implode( p.project.getrelative( prj, prj.assetdirs ), '\'', '\'', ', ' ) )
 	end
 
 	m.pop '' -- main

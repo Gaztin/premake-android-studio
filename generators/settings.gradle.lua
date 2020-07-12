@@ -13,10 +13,11 @@ function m.generate( wks )
 	p.outln ''
 
 	for prj in p.workspace.eachproject( wks ) do
-		local project_dir = string.format( '%s/%s', prj.location, prj.name )
+		local relative_location = p.workspace.getrelative( wks, prj.location )
 
 		p.w( 'include( \':%s\' )', prj.name )
-		p.w( 'project( \':%s\' ).projectDir = file( \'%s\' )', prj.name, p.workspace.getrelative( wks, project_dir ) )
+		p.w( 'project( \':%s\' ).projectDir = file( \'%s\' )', prj.name, relative_location )
+		p.w( 'project( \':%s\' ).buildFileName = file( \'%s.build.gradle\' )', prj.name, prj.name )
 		p.outln ''
 	end
 end
