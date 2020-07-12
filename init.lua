@@ -17,7 +17,5 @@ if _ACTION == 'android-studio' then
 	jvmargs { '-Xmx2048m' }
 	maxsdkversion '26'
 	minsdkversion '15'
-	targetextension '.so'
-	targetprefix 'lib'
 	toolset 'clang'
 end
