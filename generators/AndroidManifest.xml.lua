@@ -10,15 +10,18 @@ androidstudio.android_manifest_dot_xml = m
 
 function m.generate( prj )
 	p.w '<?xml version="1.0" encoding="utf-8"?>'
-	p.push '<manifest'
-	p.w 'xmlns:android="http://schemas.android.com/apk/res/android"'
+	p.push '<manifest xmlns:android="http://schemas.android.com/apk/res/android"'
 	p.w( 'package="%s"', prj.appid )
 	p.w 'android:versionCode="1"'
-	p.w 'android:versionName="1.0">'
+	p.w 'android:versionName="1.0" >'
 	p.outln ''
-	p.w( '<uses-sdk android:minSdkVersion="%s" android:maxSdkVersion="%s" android:targetSdkVersion="%s" />', prj.minsdkversion, prj.maxsdkversion, prj.maxsdkversion )
+	p.push( '<uses-sdk' )
+	p.w( 'android:minSdkVersion="%s"', prj.minsdkversion )
+	p.w( 'android:maxSdkVersion="%s"', prj.maxsdkversion )
+	p.w( 'android:targetSdkVersion="%s" />', prj.maxsdkversion )
+	p.pop()
 	p.outln ''
-	p.w '<application/>'
+	p.w '<application />'
 	p.outln ''
 	p.pop '</manifest>'
 end
