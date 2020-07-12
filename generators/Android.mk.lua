@@ -170,9 +170,9 @@ function m.localLibraries( cfg )
 
 	for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
 		if dependency.kind == p.STATICLIB then
-			table.insert( static_libs, dependency.name )
+			table.insert( static_libs, dependency.filename )
 		elseif dependency.kind == p.SHAREDLIB then
-			table.insert( shared_libs, dependency.name )
+			table.insert( shared_libs, dependency.filename )
 		end
 	end
 
