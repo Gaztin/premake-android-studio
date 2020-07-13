@@ -143,24 +143,45 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
-	local cfg                 = p.project.getfirstconfig( prj )
-	local ndk_build_ext       = os.ishost( 'windows' ) and '.cmd' or ''
-	local relative_targetpath = p.project.getrelative( prj, cfg.buildtarget.abspath )
+	p.w 'String buildConfig, targetDir, targetName'
+	p.push 'switch( buildType.name ) {'
+
+	for cfg in p.project.eachconfig( prj ) do
+		local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
+
+		p.push( 'case \'%s\':', cfg.buildcfg:lower() )
+		p.w( 'buildConfig = \'%s\'', cfg.buildcfg )
+		p.w( 'targetDir = \'%s\'', relative_targetdir )
+		p.w( 'targetName = \'%s\'', cfg.buildtarget.name )
+		p.w 'break'
+		p.pop()
+	end
+
+	p.pop '}'
+
+	local ndk_build_ext = os.ishost( 'windows' ) and '.cmd' or ''
 
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
-
 	p.push 'exec {'
-	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'PREMAKE_CONFIGURATION=Debug\'' )
+	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', "PREMAKE_CONFIGURATION=${buildConfig}"' )
 	p.pop '}'
 
-	p.push 'exec {'
 	if os.ishost( 'windows' ) then
-		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, relative_targetpath )
+		p.push 'exec {'
+		p.w( 'commandLine \'cmd.exe\', \'/k\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\""' )
+		p.pop '}'
+		p.push 'exec {'
+		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\""' )		
+		p.pop '}'
 	else
-		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, relative_targetpath )
+		p.push 'exec {'
+		p.w( 'commandLine "mkdir -p \\"${project.projectDir}/${targetDir}\\"' )
+		p.pop '}'
+		p.push 'exec {'
+		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/${targetDir}/${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\""' )
+		p.pop '}'
 	end
-	p.pop '}'
 
 	p.pop '}'
 	p.pop '}'
