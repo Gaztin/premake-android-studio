@@ -143,8 +143,9 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
-	local cfg           = p.project.getfirstconfig( prj )
-	local ndk_build_ext = os.ishost( 'windows' ) and '.cmd' or ''
+	local cfg                 = p.project.getfirstconfig( prj )
+	local ndk_build_ext       = os.ishost( 'windows' ) and '.cmd' or ''
+	local relative_targetpath = p.project.getrelative( prj, cfg.buildtarget.abspath )
 
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
@@ -155,9 +156,9 @@ function m.ndkBuildTasks( prj )
 
 	p.push 'exec {'
 	if os.ishost( 'windows' ) then
-		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, p.project.getrelative( prj, cfg.buildtarget.abspath ) )
+		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, relative_targetpath )
 	else
-		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/%s\\" \\"%s\\""', cfg.buildtarget.name, cfg.buildtarget.abspath )
+		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, relative_targetpath )
 	end
 	p.pop '}'
 
