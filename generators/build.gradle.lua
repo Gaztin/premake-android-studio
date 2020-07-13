@@ -143,13 +143,24 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
+	local cfg           = p.project.getfirstconfig( prj )
 	local ndk_build_ext = os.ishost( 'windows' ) and '.cmd' or ''
 
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
+
 	p.push 'exec {'
 	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'PREMAKE_CONFIGURATION=Debug\'' )
 	p.pop '}'
+
+	p.push 'exec {'
+	if os.ishost( 'windows' ) then
+		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}\\\\obj\\\\local\\\\arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, p.project.getrelative( prj, cfg.buildtarget.abspath ) )
+	else
+		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/%s\\" \\"%s\\""', cfg.buildtarget.name, cfg.buildtarget.abspath )
+	end
+	p.pop '}'
+
 	p.pop '}'
 	p.pop '}'
 
