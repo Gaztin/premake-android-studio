@@ -155,7 +155,7 @@ function m.ndkBuildTasks( prj )
 
 	p.push 'exec {'
 	if os.ishost( 'windows' ) then
-		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}\\\\obj\\\\local\\\\arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, p.project.getrelative( prj, cfg.buildtarget.abspath ) )
+		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\%s\\" \\"${project.projectDir}/%s\\""', cfg.buildtarget.name, p.project.getrelative( prj, cfg.buildtarget.abspath ) )
 	else
 		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/%s\\" \\"%s\\""', cfg.buildtarget.name, cfg.buildtarget.abspath )
 	end
