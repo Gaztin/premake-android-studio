@@ -19,12 +19,8 @@ function m.generate( prj )
 
 	p.w 'LOCAL_PATH := $(call my-dir)'
 	p.outln ''
-
-	if androidstudio.isApp( prj ) then
-		m.includeDependencies( prj )
-	end
+	m.declareDependencies( prj )
 	p.outln ''
-
 	p.w 'include $(CLEAR_VARS)'
 	p.w( 'LOCAL_MODULE := %s', prj.name )
 
@@ -41,7 +37,6 @@ function m.generate( prj )
 		p.push( '%sifeq ($(PREMAKE_CONFIGURATION),%s)', i > 1 and 'else ' or '', cfg.buildcfg )
 
 		m.localModuleFilename( cfg )
-		m.declareDependencies( cfg )
 		m.localSrcFiles( cfg )
 		m.localCppFeatures( cfg )
 		m.localCIncludes( cfg )
@@ -94,22 +89,54 @@ function m.localModuleFilename( cfg )
 	p.w( 'LOCAL_MODULE_FILENAME := %s%s', cfg.buildtarget.prefix, cfg.buildtarget.basename )
 end
 
-function m.declareDependencies( cfg )
-	for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
-		local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+function m.declareDependencies( prj )
+	local e = ''
 
-		p.w 'include $(CLEAR_VARS)'
-		p.w( 'LOCAL_MODULE := %s%s', buildtargetinfo.prefix, buildtargetinfo.basename )
-		p.w( 'LOCAL_SRC_FILES := %s', buildtargetinfo.abspath )
+	for cfg in p.project.eachconfig( prj ) do
+		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
 
-		if dependency.kind == p.STATICLIB then
-			p.w 'include $(PREBUILT_STATIC_LIBRARY)'
-		else
-			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
+		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
+			p.w( 'include %s', path.join( p.project.getrelative( prj, dependency.location ), 'Android.mk' ) )
 		end
 
-		p.outln ''
+		p.pop()
+
+		e = 'else '
 	end
+	p.w 'endif'
+
+--	local dependencies = { }
+--	local e = ''
+--
+--	for cfg in p.project.eachconfig( prj ) do
+--		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
+--
+--		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
+--			local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+--
+--			p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, buildtargetinfo.abspath )
+--
+--			dependencies[ dependency.filename ] = dependency.project
+--		end
+--
+--		p.pop()
+--
+--		e = 'else '
+--	end
+--	p.w 'endif'
+--	p.outln ''
+--
+--	for name, dependency in pairs( dependencies ) do
+--		p.w 'include $(CLEAR_VARS)'
+--		p.w( 'LOCAL_MODULE := %s', name )
+--		p.w( 'LOCAL_SRC_FILES := $(PREMAKE_DEPENDENCY_PATH_%s)', name )
+--
+--		if dependency.kind == p.STATICLIB then
+--			p.w 'include $(PREBUILT_STATIC_LIBRARY)'
+--		else
+--			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
+--		end
+--	end
 end
 
 function m.localCppFeatures( cfg )

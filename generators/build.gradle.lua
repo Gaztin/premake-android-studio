@@ -143,16 +143,18 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
-	p.w 'String buildConfig, targetDir, targetName'
+	p.w 'String buildConfig, targetDir, targetName, appStl'
 	p.push 'switch( buildType.name ) {'
 
 	for cfg in p.project.eachconfig( prj ) do
 		local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
+		local app_stl            = cfg.staticruntime and 'c++_static' or 'c++_shared'
 
 		p.push( 'case \'%s\':', cfg.buildcfg:lower() )
 		p.w( 'buildConfig = \'%s\'', cfg.buildcfg )
 		p.w( 'targetDir = \'%s\'', relative_targetdir )
 		p.w( 'targetName = \'%s\'', cfg.buildtarget.name )
+		p.w( 'appStl = \'%s\'', app_stl )
 		p.w 'break'
 		p.pop()
 	end
@@ -164,7 +166,7 @@ function m.ndkBuildTasks( prj )
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
 	p.push 'exec {'
-	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', "PREMAKE_CONFIGURATION=${buildConfig}"' )
+	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", "APP_STL=${appStl}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', "PREMAKE_CONFIGURATION=${buildConfig}"' )
 	p.pop '}'
 
 	if os.ishost( 'windows' ) then
