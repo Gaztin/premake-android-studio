@@ -172,7 +172,9 @@ function m.ndkBuildTasks( prj )
 	p.push 'doLast {'
 
 	for _, abi in ipairs( prj.androidabis ) do
-		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}" }' )
+		local app_stl = iif( androidstudio.isApp( prj ), ', "APP_STL=c++_shared"', '' )
+		
+		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}"'..app_stl..' }' )
 
 		if os.ishost( 'windows' ) then
 			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"", ">NUL" }' )
