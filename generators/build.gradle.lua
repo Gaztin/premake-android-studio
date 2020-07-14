@@ -175,8 +175,8 @@ function m.ndkBuildTasks( prj )
 		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}" }' )
 
 		if os.ishost( 'windows' ) then
-			p.w( 'exec { commandLine \'cmd.exe\', \'/k\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"" }' )
-			p.w( 'exec { commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/'..abi..'\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"" }' )
+			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"", ">NUL" }' )
+			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "move /Y \\"${project.projectDir}/obj/local/'..abi..'\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"", ">NUL" }' )
 		else
 			p.w( 'exec { commandLine "mkdir -p \\"${project.projectDir}/${targetDir}\\" }' )
 			p.w( 'exec { commandLine "mv \\"${project.projectDir}/obj/local/'..abi..'/${targetDir}/${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"" }' )
