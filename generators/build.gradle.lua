@@ -148,7 +148,6 @@ function m.ndkBuildTasks( prj )
 
 	for cfg in p.project.eachconfig( prj ) do
 		local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
-		local app_stl            = cfg.staticruntime and 'c++_static' or 'c++_shared'
 		local extra_args         = { }
 
 		if cfg.flags.MultiProcessorCompile then
@@ -159,7 +158,6 @@ function m.ndkBuildTasks( prj )
 		p.w( 'buildConfig = \'%s\'', cfg.buildcfg )
 		p.w( 'targetDir = \'%s\'', relative_targetdir )
 		p.w( 'targetName = \'%s\'', cfg.buildtarget.name )
-		p.w( 'appStl = \'%s\'', app_stl )
 		p.w( 'extraArgs = \'%s\'', table.concat( extra_args, ' ' ) )
 
 		p.w 'break'
@@ -174,7 +172,7 @@ function m.ndkBuildTasks( prj )
 	p.push 'doLast {'
 
 	for _, abi in ipairs( prj.androidabis ) do
-		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", "APP_STL=${appStl}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}" }' )
+		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}" }' )
 
 		if os.ishost( 'windows' ) then
 			p.w( 'exec { commandLine \'cmd.exe\', \'/k\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"" }' )
