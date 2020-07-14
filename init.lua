@@ -18,4 +18,12 @@ if _ACTION == 'android-studio' then
 	maxsdkversion '26'
 	minsdkversion '15'
 	toolset 'clang'
+
+	-- Apps are compiled down to .so files
+	filter 'kind:WindowedApp or ConsoleApp'
+	targetprefix 'lib'
+	targetextension '.so'
+
+	-- Reset filter before exiting
+	filter { }
 end
