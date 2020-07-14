@@ -85,11 +85,9 @@ function m.defaultConfig( prj )
 	p.w 'versionCode 1'
 	p.w 'versionName \'1.0\''
 
-	if #prj.androidabis > 0 then
-		m.push 'ndk'
-		p.w( 'abiFilters \'%s\'', table.concat( prj.androidabis, '\', \'' ) )
-		m.pop ''
-	end
+	m.push 'ndk'
+	p.w( 'abiFilters \'%s\'', table.concat( prj.platforms, '\', \'' ) )
+	m.pop ''
 
 	m.pop '' -- defaultConfig
 end
@@ -171,10 +169,10 @@ function m.ndkBuildTasks( prj )
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
 
-	for _, abi in ipairs( prj.androidabis ) do
-		local app_stl = iif( androidstudio.isApp( prj ), ', "APP_STL=c++_shared"', '' )
-		
-		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}"'..app_stl..' }' )
+	for _, abi in ipairs( prj.platforms ) do
+		local app_stl = iif( prj.staticruntime == p.ON, 'c++_static', 'c++_shared' )
+
+		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}"'..iif( prj.kind ~= p.STATICLIB, ', "APP_STL='..app_stl..'"', '' )..' }' )
 
 		if os.ishost( 'windows' ) then
 			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"", ">NUL" }' )

@@ -8,13 +8,6 @@ p.api.register {
 }
 
 p.api.register {
-	name   = 'androidabis',
-	scope  = 'project',
-	kind   = 'list:string',
-	tokens = true,
-}
-
-p.api.register {
 	name   = 'assetdirs',
 	scope  = 'project',
 	kind   = 'list:directory',
