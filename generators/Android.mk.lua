@@ -20,7 +20,6 @@ function m.generate( prj )
 	p.w 'LOCAL_PATH := $(call my-dir)'
 	p.outln ''
 	m.declareDependencies( prj )
-	p.outln ''
 	p.w 'include $(CLEAR_VARS)'
 	p.w( 'LOCAL_MODULE := %s', prj.name )
 
@@ -90,58 +89,48 @@ function m.localModuleFilename( cfg )
 end
 
 function m.declareDependencies( prj )
---	local e = ''
---
---	for cfg in p.project.eachconfig( prj ) do
---		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
---
---		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
---			local relative_location   = p.project.getrelative( prj, dependency.location )
---			local relative_android_mk = path.join( relative_location, 'Android.mk' )
---
---			p.w( 'include %s', relative_android_mk )
---		end
---
---		p.pop()
---
---		e = 'else '
---	end
---	p.w 'endif'
-
 	local dependencies = { }
 	local e = ''
 
 	for cfg in p.project.eachconfig( prj ) do
-		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
+		local links = p.config.getlinks( cfg, 'dependencies', 'object' )
 
-		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
-			local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+		if #links > 0 then
+			p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
 
-			p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, buildtargetinfo.abspath )
+			for _, dependency in ipairs( links ) do
+				local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
 
-			dependencies[ dependency.filename ] = dependency.project
+				p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, buildtargetinfo.abspath )
+
+				dependencies[ dependency.filename ] = dependency.project
+			end
+
+			p.pop()
+
+			e = 'else '
+		end
+	end
+
+	if #e > 0 then
+		p.push 'else'
+		p.w '# Set a dummy location for the dependencies. This fixes an issue where gradle is failing to sync while analyzing the'
+		p.w '#  ndk-build because the library file is missing, which makes sense since the dependency has not been built yet.'
+
+		for name, dependency in pairs( dependencies ) do
+			local ext        = dependency.kind == p.STATICLIB and 'a' or 'so'
+			local dummy_path = path.join( androidstudio.MODULE_LOCATION, 'libDummy.'..ext )
+
+			p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, dummy_path )
 		end
 
 		p.pop()
-
-		e = 'else '
+		p.w 'endif'
+		p.outln ''
 	end
 
-	p.push 'else'
-	p.w '# Set a dummy location for the dependencies. This fixes an issue where gradle is failing to sync while analyzing the'
-	p.w '#  ndk-build because the library file is missing, which makes sense since the dependency has not been built yet.'
 	for name, dependency in pairs( dependencies ) do
-		local ext        = dependency.kind == p.STATICLIB and 'a' or 'so'
-		local dummy_path = path.join( androidstudio.MODULE_LOCATION, 'libDummy.'..ext )
-
-		p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, dummy_path )
-	end
-	p.pop()
-
-	p.w 'endif'
-	p.outln ''
-
-	for name, dependency in pairs( dependencies ) do
+		p.w( '# Dependency: %s', name )
 		p.w 'include $(CLEAR_VARS)'
 		p.w( 'LOCAL_MODULE := %s', name )
 		p.w( 'LOCAL_SRC_FILES := $(PREMAKE_DEPENDENCY_PATH_%s)', name )
@@ -151,6 +140,8 @@ function m.declareDependencies( prj )
 		else
 			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
 		end
+
+		p.outln ''
 	end
 end
 
