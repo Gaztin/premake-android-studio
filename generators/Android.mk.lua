@@ -90,36 +90,16 @@ function m.localModuleFilename( cfg )
 end
 
 function m.declareDependencies( prj )
-	local e = ''
-
-	for cfg in p.project.eachconfig( prj ) do
-		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
-
-		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
-			local relative_location   = p.project.getrelative( prj, dependency.location )
-			local relative_android_mk = path.join( relative_location, 'Android.mk' )
-
-			p.w( 'include %s', relative_android_mk )
-		end
-
-		p.pop()
-
-		e = 'else '
-	end
-	p.w 'endif'
-
---	local dependencies = { }
 --	local e = ''
 --
 --	for cfg in p.project.eachconfig( prj ) do
 --		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
 --
 --		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
---			local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+--			local relative_location   = p.project.getrelative( prj, dependency.location )
+--			local relative_android_mk = path.join( relative_location, 'Android.mk' )
 --
---			p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, buildtargetinfo.abspath )
---
---			dependencies[ dependency.filename ] = dependency.project
+--			p.w( 'include %s', relative_android_mk )
 --		end
 --
 --		p.pop()
@@ -127,19 +107,51 @@ function m.declareDependencies( prj )
 --		e = 'else '
 --	end
 --	p.w 'endif'
---	p.outln ''
---
---	for name, dependency in pairs( dependencies ) do
---		p.w 'include $(CLEAR_VARS)'
---		p.w( 'LOCAL_MODULE := %s', name )
---		p.w( 'LOCAL_SRC_FILES := $(PREMAKE_DEPENDENCY_PATH_%s)', name )
---
---		if dependency.kind == p.STATICLIB then
---			p.w 'include $(PREBUILT_STATIC_LIBRARY)'
---		else
---			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
---		end
---	end
+
+	local dependencies = { }
+	local e = ''
+
+	for cfg in p.project.eachconfig( prj ) do
+		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
+
+		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
+			local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
+
+			p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, buildtargetinfo.abspath )
+
+			dependencies[ dependency.filename ] = dependency.project
+		end
+
+		p.pop()
+
+		e = 'else '
+	end
+
+	p.push 'else'
+	p.w '# Set a dummy location for the dependencies. This fixes an issue where gradle is failing to sync while analyzing the'
+	p.w '#  ndk-build because the library file is missing, which makes sense since the dependency has not been built yet.'
+	for name, dependency in pairs( dependencies ) do
+		local ext        = dependency.kind == p.STATICLIB and 'a' or 'so'
+		local dummy_path = path.join( androidstudio.MODULE_LOCATION, 'libDummy.'..ext )
+
+		p.w( 'PREMAKE_DEPENDENCY_PATH_%s := %s', dependency.filename, dummy_path )
+	end
+	p.pop()
+
+	p.w 'endif'
+	p.outln ''
+
+	for name, dependency in pairs( dependencies ) do
+		p.w 'include $(CLEAR_VARS)'
+		p.w( 'LOCAL_MODULE := %s', name )
+		p.w( 'LOCAL_SRC_FILES := $(PREMAKE_DEPENDENCY_PATH_%s)', name )
+
+		if dependency.kind == p.STATICLIB then
+			p.w 'include $(PREBUILT_STATIC_LIBRARY)'
+		else
+			p.w 'include $(PREBUILT_SHARED_LIBRARY)'
+		end
+	end
 end
 
 function m.localCppFeatures( cfg )

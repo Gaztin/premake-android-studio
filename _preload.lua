@@ -5,6 +5,10 @@ local m = { }
 p.extensions.androidstudio = m
 m._VERSION                 = p._VERSION
 
+-- This is going to break eligibility to embed this module into the premake exeutable.
+-- It's needed to know the directory of libDummy.a amd libDummy.so.
+m.MODULE_LOCATION = os.getcwd()
+
 --
 -- Create the Android Studio action
 --
