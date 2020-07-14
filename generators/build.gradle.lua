@@ -143,18 +143,25 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
-	p.w 'String buildConfig, targetDir, targetName, appStl'
+	p.w 'String buildConfig, targetDir, targetName, appStl, extraArgs'
 	p.push 'switch( buildType.name ) {'
 
 	for cfg in p.project.eachconfig( prj ) do
 		local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
 		local app_stl            = cfg.staticruntime and 'c++_static' or 'c++_shared'
+		local extra_args         = { }
+
+		if cfg.flags.MultiProcessorCompile then
+			table.insert( extra_args, '-j' )
+		end
 
 		p.push( 'case \'%s\':', cfg.buildcfg:lower() )
 		p.w( 'buildConfig = \'%s\'', cfg.buildcfg )
 		p.w( 'targetDir = \'%s\'', relative_targetdir )
 		p.w( 'targetName = \'%s\'', cfg.buildtarget.name )
 		p.w( 'appStl = \'%s\'', app_stl )
+		p.w( 'extraArgs = \'%s\'', table.concat( extra_args, ' ' ) )
+
 		p.w 'break'
 		p.pop()
 	end
@@ -165,24 +172,17 @@ function m.ndkBuildTasks( prj )
 
 	p.push 'ndkBuildTask = tasks.create( name: ndkBuildTaskName ) {'
 	p.push 'doLast {'
-	p.push 'exec {'
-	p.w( 'commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", "APP_STL=${appStl}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', "PREMAKE_CONFIGURATION=${buildConfig}"' )
-	p.pop '}'
 
-	if os.ishost( 'windows' ) then
-		p.push 'exec {'
-		p.w( 'commandLine \'cmd.exe\', \'/k\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\""' )
-		p.pop '}'
-		p.push 'exec {'
-		p.w( 'commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/arm64-v8a\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\""' )		
-		p.pop '}'
-	else
-		p.push 'exec {'
-		p.w( 'commandLine "mkdir -p \\"${project.projectDir}/${targetDir}\\"' )
-		p.pop '}'
-		p.push 'exec {'
-		p.w( 'commandLine "mv \\"${project.projectDir}/obj/local/arm64-v8a/${targetDir}/${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\""' )
-		p.pop '}'
+	for _, abi in ipairs( prj.androidabis ) do
+		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", "APP_STL=${appStl}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}" }' )
+
+		if os.ishost( 'windows' ) then
+			p.w( 'exec { commandLine \'cmd.exe\', \'/k\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"" }' )
+			p.w( 'exec { commandLine \'cmd.exe\', \'/k\', "move /Y \\"${project.projectDir}/obj/local/'..abi..'\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"" }' )
+		else
+			p.w( 'exec { commandLine "mkdir -p \\"${project.projectDir}/${targetDir}\\" }' )
+			p.w( 'exec { commandLine "mv \\"${project.projectDir}/obj/local/'..abi..'/${targetDir}/${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"" }' )
+		end
 	end
 
 	p.pop '}'

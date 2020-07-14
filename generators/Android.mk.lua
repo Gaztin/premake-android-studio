@@ -96,7 +96,10 @@ function m.declareDependencies( prj )
 		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
 
 		for _, dependency in ipairs( p.config.getlinks( cfg, 'dependencies', 'object' ) ) do
-			p.w( 'include %s', path.join( p.project.getrelative( prj, dependency.location ), 'Android.mk' ) )
+			local relative_location   = p.project.getrelative( prj, dependency.location )
+			local relative_android_mk = path.join( relative_location, 'Android.mk' )
+
+			p.w( 'include %s', relative_android_mk )
 		end
 
 		p.pop()
