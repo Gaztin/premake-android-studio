@@ -139,8 +139,24 @@ function m.sourceSets( prj )
 		p.w( 'assets.srcDirs %s', table.implode( p.project.getrelative( prj, prj.assetdirs ), '\'', '\'', ', ' ) )
 	end
 
-	-- Disable automatic ndkBuild tasks
-	p.w 'jni.srcDirs = []'
+	if androidstudio.isApp( prj ) then
+		-- Disable automatic ndkBuild tasks for app projects (library projects never trigger ndk-build automatically)
+		p.w 'jni.srcDirs = []'
+	else
+		-- For the source files to show up in the outliner, we have to set the srcDirs for library projects
+		local src_dirs = { }
+
+		for cfg in p.project.eachconfig( prj ) do
+			for _, file in ipairs( cfg.files ) do
+				local dir          = path.getdirectory( file )
+				local relative_dir = p.project.getrelative( prj, dir )
+
+				table.insert( src_dirs, relative_dir )
+			end
+		end
+
+		p.w( 'jni.srcDirs %s', table.implode( table.unique( src_dirs ), '\'', '\'', ', ' ) )
+	end
 
 	p.pop '}' -- main
 	p.pop '}' -- sourceSets
