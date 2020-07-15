@@ -15,7 +15,11 @@ function m.generate( prj )
 	p.w 'android:versionCode="1"'
 	p.w 'android:versionName="1.0" >'
 	p.outln ''
-	p.w( '<uses-sdk android:maxSdkVersion="%s" />', prj.maxsdkversion )
+	p.push( '<uses-sdk' )
+	p.w( 'android:minSdkVersion="%s"', prj.minsdkversion )
+	p.w( 'android:maxSdkVersion="%s"', prj.maxsdkversion )
+	p.w( 'android:targetSdkVersion="%s" />', prj.maxsdkversion )
+	p.pop()
 	p.outln ''
 	p.w '<application />'
 	p.outln ''
