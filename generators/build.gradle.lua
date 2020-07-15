@@ -169,7 +169,7 @@ function m.ndkBuildTasks( prj )
 		table.insert( abi_configs[ cfg.buildcfg ], cfg )
 	end
 
-	for buildcfg, cfglist in pairs( abi_configs ) do
+	for buildcfg, cfglist in spairs( abi_configs ) do
 		p.push( 'case \'%s\':', buildcfg:lower() )
 
 		p.w( 'buildConfig = \'%s\'', buildcfg )
