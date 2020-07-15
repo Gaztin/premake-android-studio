@@ -110,9 +110,9 @@ function m.buildTypes( prj )
 			local debuggable       = p.config.isDebugBuild( cfg )
 
 			p.push( '\''..build_type..'\' {' )
-			p.w( 'shrinkResources %s', iif( shrink_resources, 'true', 'false' ) )
-			p.w( 'minifyEnabled %s', iif( minify_enabled, 'true', 'false' ) )
-			p.w( 'debuggable %s', iif( debuggable, 'true', 'false' ) )
+			p.w( 'setShrinkResources %s', iif( shrink_resources, 'true', 'false' ) )
+			p.w( 'setMinifyEnabled %s', iif( minify_enabled, 'true', 'false' ) )
+			p.w( 'setDebuggable %s', iif( debuggable, 'true', 'false' ) )
 			p.pop '}' -- @build_type
 
 			buildcfg_seen[ cfg.buildcfg ] = true
