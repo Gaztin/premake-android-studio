@@ -11,21 +11,21 @@ androidstudio.build_dot_gradle = m
 function m.generateWorkspace( wks )
 	p.indent '    '
 
-	m.push 'buildscript'
-	m.push 'repositories'
+	p.push 'buildscript {'
+	p.push 'repositories {'
 	p.w 'jcenter()'
 	p.w 'google()'
-	m.pop '' -- repositories
-	m.push 'dependencies'
+	p.pop '}' -- repositories
+	p.push 'dependencies {'
 	p.w( 'classpath \'com.android.tools.build:gradle:%s\'', wks.gradleversion )
-	m.pop '' -- dependencies
-	m.pop '' -- buildscript
-	m.push 'allprojects'
-	m.push 'repositories'
+	p.pop '}' -- dependencies
+	p.pop '}' -- buildscript
+	p.push 'allprojects {'
+	p.push 'repositories {'
 	p.w 'jcenter()'
 	p.w 'google()'
-	m.pop '' -- repositories
-	m.pop '' -- allprojects
+	p.pop '}' -- repositories
+	p.pop '}' -- allprojects
 end
 
 --
@@ -44,21 +44,14 @@ function m.generateProject( prj )
 
 	m.premakeConfigClass( prj )
 
-	m.push 'android'
+	p.push 'android {'
 	p.w( 'compileSdkVersion %s', prj.maxsdkversion )
 	m.defaultConfig( prj )
-
-	m.push 'externalNativeBuild'
-	m.push 'ndkBuild'
-	p.w 'path \'Android.mk\''
-	p.w( 'buildStagingDirectory \'%s\'', p.project.getfirstconfig( prj ).buildtarget.directory )
-	m.pop '' -- ndkBuild
-	m.pop '' -- externalNativeBuild
-
+	m.externalNativeBuild( prj )
 	m.buildTypes( prj )
 	m.sourceSets( prj )
 	m.ndkBuildTasks( prj )
-	m.pop '' -- android
+	p.pop '}' -- android
 	
 	m.dependencies( prj )
 end
@@ -66,14 +59,6 @@ end
 --
 -- Utility functions
 --
-
-function m.push( name )
-	p.push( '%s {', name )
-end
-
-function m.pop( _ )
-	p.pop( '}' )
-end
 
 function m.premakeConfigClass( prj )
 	p.push 'class PremakeConfig {'
@@ -85,7 +70,7 @@ function m.premakeConfigClass( prj )
 end
 
 function m.defaultConfig( prj )
-	m.push 'defaultConfig'
+	p.push 'defaultConfig {'
 
 	if androidstudio.isApp( prj ) then
 		p.w( 'applicationId \'%s\'', prj.appid )
@@ -96,17 +81,25 @@ function m.defaultConfig( prj )
 	p.w 'versionCode 1'
 	p.w 'versionName \'1.0\''
 
-	m.push 'ndk'
+	p.push 'ndk {'
 	p.w( 'abiFilters \'%s\'', table.concat( prj.platforms, '\', \'' ) )
-	m.pop ''
+	p.pop '}'
 
-	m.pop '' -- defaultConfig
+	p.pop '}' -- defaultConfig
+end
+
+function m.externalNativeBuild( prj )
+	p.push 'externalNativeBuild {'
+	p.push 'ndkBuild {'
+	p.w 'path \'Android.mk\''
+	p.pop '}' -- ndkBuild
+	p.pop '}' -- externalNativeBuild
 end
 
 function m.buildTypes( prj )
 	local buildcfg_seen = { }
 
-	m.push 'buildTypes'
+	p.push 'buildTypes {'
 
 	for cfg in p.project.eachconfig( prj ) do
 		if not buildcfg_seen[ cfg.buildcfg ] then
@@ -116,22 +109,22 @@ function m.buildTypes( prj )
 			local minify_enabled   = p.config.isOptimizedBuild( cfg )
 			local debuggable       = p.config.isDebugBuild( cfg )
 
-			m.push( '\''..build_type..'\'' )
+			p.push( '\''..build_type..'\' {' )
 			p.w( 'shrinkResources %s', iif( shrink_resources, 'true', 'false' ) )
 			p.w( 'minifyEnabled %s', iif( minify_enabled, 'true', 'false' ) )
 			p.w( 'debuggable %s', iif( debuggable, 'true', 'false' ) )
-			m.pop '' -- @build_type
+			p.pop '}' -- @build_type
 
 			buildcfg_seen[ cfg.buildcfg ] = true
 		end
 	end
 
-	m.pop '' -- buildTypes
+	p.pop '}' -- buildTypes
 end
 
 function m.sourceSets( prj )
-	m.push 'sourceSets'
-	m.push 'main'
+	p.push 'sourceSets {'
+	p.push 'main {'
 
 	p.w( 'manifest.srcFile \'%s\'', p.project.getrelative( prj, prj.androidmanifest ) )
 
@@ -148,8 +141,8 @@ function m.sourceSets( prj )
 	-- Disable automatic ndkBuild tasks
 	p.w 'jni.srcDirs = []'
 
-	m.pop '' -- main
-	m.pop '' -- sourceSets
+	p.pop '}' -- main
+	p.pop '}' -- sourceSets
 end
 
 function m.ndkBuildTasks( prj )
@@ -242,12 +235,12 @@ function m.dependencies( prj )
 	end
 
 	if #project_links > 0 then
-		m.push 'dependencies'
+		p.push 'dependencies {'
 
 		for i = 1, #project_links do
 			p.w( 'implementation project( \':%s\' )', project_links[ i ].name )
 		end
 
-		m.pop ''
+		p.pop '}'
 	end
 end
