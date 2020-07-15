@@ -57,9 +57,9 @@ function m.generateProject( prj )
 
 	m.buildTypes( prj )
 	m.sourceSets( prj )
-	m.pop '' -- android
-
 	m.ndkBuildTasks( prj )
+	m.pop '' -- android
+	
 	m.dependencies( prj )
 end
 
@@ -153,7 +153,7 @@ function m.sourceSets( prj )
 end
 
 function m.ndkBuildTasks( prj )
-	p.push 'android.buildTypes.all { buildType ->'
+	p.push 'buildTypes.all { buildType ->'
 	p.w 'String ndkBuildTaskName = \'ndkBuild_\' + buildType.name'
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
