@@ -113,12 +113,7 @@ function m.buildTypes( prj )
 			p.w( 'setShrinkResources %s', shrink_resources )
 			p.w( 'setMinifyEnabled %s', optimized )
 			p.w( 'setDebuggable %s', debuggable )
-			p.push 'postprocessing {'
-			p.w( 'setRemoveUnusedCode %s', optimized )
-			p.w( 'setRemoveUnusedResources %s', optimized )
-			p.w( 'setObfuscate %s', optimized )
-			p.w( 'setOptimizeCode %s', optimized )
-			p.pop '}' -- postprocessing
+			p.w 'setUseProguard false'
 			p.pop '}' -- @build_type
 
 			buildcfg_seen[ cfg.buildcfg ] = true
