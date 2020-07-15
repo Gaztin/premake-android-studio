@@ -105,14 +105,20 @@ function m.buildTypes( prj )
 		if not buildcfg_seen[ cfg.buildcfg ] then
 			local build_type = string.lower( cfg.buildcfg )
 
-			local shrink_resources = androidstudio.isApp( prj ) and p.config.isOptimizedBuild( cfg )
-			local minify_enabled   = p.config.isOptimizedBuild( cfg )
-			local debuggable       = p.config.isDebugBuild( cfg )
+			local shrink_resources = tostring( androidstudio.isApp( prj ) and p.config.isOptimizedBuild( cfg ) )
+			local optimized        = tostring( p.config.isOptimizedBuild( cfg ) )
+			local debuggable       = tostring( p.config.isDebugBuild( cfg ) )
 
 			p.push( '\''..build_type..'\' {' )
-			p.w( 'setShrinkResources %s', iif( shrink_resources, 'true', 'false' ) )
-			p.w( 'setMinifyEnabled %s', iif( minify_enabled, 'true', 'false' ) )
-			p.w( 'setDebuggable %s', iif( debuggable, 'true', 'false' ) )
+			p.w( 'setShrinkResources %s', shrink_resources )
+			p.w( 'setMinifyEnabled %s', optimized )
+			p.w( 'setDebuggable %s', debuggable )
+			p.push 'postprocessing {'
+			p.w( 'setRemoveUnusedCode %s', optimized )
+			p.w( 'setRemoveUnusedResources %s', optimized )
+			p.w( 'setObfuscate %s', optimized )
+			p.w( 'setOptimizeCode %s', optimized )
+			p.pop '}' -- postprocessing
 			p.pop '}' -- @build_type
 
 			buildcfg_seen[ cfg.buildcfg ] = true
