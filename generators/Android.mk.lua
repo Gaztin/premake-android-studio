@@ -9,12 +9,6 @@ androidstudio.android_dot_mk = m
 --
 
 function m.generate( prj )
-	local configs = { }
-
-	for cfg in p.project.eachconfig( prj ) do
-		table.insert( configs, cfg )
-	end
-
 	p.indent '    '
 
 	p.w 'LOCAL_PATH := $(call my-dir)'
@@ -29,11 +23,11 @@ function m.generate( prj )
 
 	p.outln ''
 
-	for i = 1, #configs do
-		local cfg     = configs[ i ]
+	local e = ''
+	for cfg in p.project.eachconfig( prj ) do
 		local toolset = p.config.toolset( cfg )
 
-		p.push( '%sifeq ($(PREMAKE_CONFIGURATION),%s)', i > 1 and 'else ' or '', cfg.buildcfg )
+		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
 
 		m.localModuleFilename( cfg )
 		m.localSrcFiles( cfg )
@@ -48,12 +42,11 @@ function m.generate( prj )
 			m.localLibraries( cfg )
 		end
 
-		if i == #configs then
-			p.pop 'endif'
-		else
-			p.pop()
-		end
+		p.pop()
+
+		e = 'else '
 	end
+	p.w 'endif'
 	p.outln ''
 
 	if prj.kind == 'StaticLib' then
@@ -96,7 +89,7 @@ function m.declareDependencies( prj )
 		local links = p.config.getlinks( cfg, 'dependencies', 'object' )
 
 		if #links > 0 then
-			p.push( e..'ifeq ($(PREMAKE_CONFIGURATION),%s)', cfg.buildcfg )
+			p.push( e..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
 
 			for _, dependency in ipairs( links ) do
 				local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )

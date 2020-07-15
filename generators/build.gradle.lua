@@ -42,6 +42,8 @@ function m.generateProject( prj )
 	end
 	p.outln ''
 
+	m.premakeConfigClass( prj )
+
 	m.push 'android'
 	p.w( 'compileSdkVersion %s', prj.maxsdkversion )
 	m.defaultConfig( prj )
@@ -73,6 +75,15 @@ function m.pop( _ )
 	p.pop( '}' )
 end
 
+function m.premakeConfigClass( prj )
+	p.push 'class PremakeConfig {'
+	p.w 'public String targetDir'
+	p.w 'public String targetName'
+	p.w 'public String extraArgs'
+	p.pop '}'
+	p.outln ''
+end
+
 function m.defaultConfig( prj )
 	m.push 'defaultConfig'
 
@@ -93,20 +104,26 @@ function m.defaultConfig( prj )
 end
 
 function m.buildTypes( prj )
-	local optimize_minifyEnabled   = { Size = 'true' }
-	local optimize_shrinkResources = { Size = 'true' }
-	local symbols_debuggable       = { On   = 'true' }
+	local buildcfg_seen = { }
 
 	m.push 'buildTypes'
 
 	for cfg in p.project.eachconfig( prj ) do
-		local build_type = string.lower( cfg.buildcfg )
+		if not buildcfg_seen[ cfg.buildcfg ] then
+			local build_type = string.lower( cfg.buildcfg )
 
-		m.push( '\''..build_type..'\'' )
-		p.w( 'minifyEnabled %s',   optimize_minifyEnabled[ cfg.optimize ]   or 'false' )
-		p.w( 'shrinkResources %s', optimize_shrinkResources[ cfg.optimize ] or 'false' )
-		p.w( 'debuggable %s',      symbols_debuggable[ cfg.symbols ]        or 'false' )
-		m.pop '' -- @build_type
+			local shrink_resources = androidstudio.isApp( prj ) and p.config.isOptimizedBuild( cfg )
+			local minify_enabled   = p.config.isOptimizedBuild( cfg )
+			local debuggable       = p.config.isDebugBuild( cfg )
+
+			m.push( '\''..build_type..'\'' )
+			p.w( 'shrinkResources %s', iif( shrink_resources, 'true', 'false' ) )
+			p.w( 'minifyEnabled %s', iif( minify_enabled, 'true', 'false' ) )
+			p.w( 'debuggable %s', iif( debuggable, 'true', 'false' ) )
+			m.pop '' -- @build_type
+
+			buildcfg_seen[ cfg.buildcfg ] = true
+		end
 	end
 
 	m.pop '' -- buildTypes
@@ -141,22 +158,35 @@ function m.ndkBuildTasks( prj )
 	p.w 'Task ndkBuildTask = tasks.findByPath( ndkBuildTaskName )'
 	p.push 'if( ndkBuildTask == null ) {'
 
-	p.w 'String buildConfig, targetDir, targetName, appStl, extraArgs'
+	p.w 'HashMap abiConfigs = new HashMap<String, PremakeConfig>()'
+	p.w 'String buildConfig'
 	p.push 'switch( buildType.name ) {'
 
+	local abi_configs = { }
+
 	for cfg in p.project.eachconfig( prj ) do
-		local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
-		local extra_args         = { }
+		abi_configs[ cfg.buildcfg ] = abi_configs[ cfg.buildcfg ] or { }
+		table.insert( abi_configs[ cfg.buildcfg ], cfg )
+	end
 
-		if cfg.flags.MultiProcessorCompile then
-			table.insert( extra_args, '-j' )
+	for buildcfg, cfglist in pairs( abi_configs ) do
+		p.push( 'case \'%s\':', buildcfg:lower() )
+
+		p.w( 'buildConfig = \'%s\'', buildcfg )
+
+		for _, cfg in ipairs( cfglist ) do
+			local relative_targetdir = p.project.getrelative( prj, cfg.buildtarget.directory )
+			local extra_args         = { }
+
+			if cfg.flags.MultiProcessorCompile then
+				table.insert( extra_args, '-j' )
+			end
+
+			p.w( 'abiConfigs.put( \'%s\', new PremakeConfig() )', cfg.platform )
+			p.w( 'abiConfigs[ \'%s\' ].targetDir = \'%s\'', cfg.platform, relative_targetdir )
+			p.w( 'abiConfigs[ \'%s\' ].targetName = \'%s\'', cfg.platform, cfg.buildtarget.name )
+			p.w( 'abiConfigs[ \'%s\' ].extraArgs = \'%s\'', cfg.platform, table.concat( extra_args, ' ' ) )
 		end
-
-		p.push( 'case \'%s\':', cfg.buildcfg:lower() )
-		p.w( 'buildConfig = \'%s\'', cfg.buildcfg )
-		p.w( 'targetDir = \'%s\'', relative_targetdir )
-		p.w( 'targetName = \'%s\'', cfg.buildtarget.name )
-		p.w( 'extraArgs = \'%s\'', table.concat( extra_args, ' ' ) )
 
 		p.w 'break'
 		p.pop()
@@ -170,16 +200,19 @@ function m.ndkBuildTasks( prj )
 	p.push 'doLast {'
 
 	for _, abi in ipairs( prj.platforms ) do
-		local app_stl = iif( prj.staticruntime == p.ON, 'c++_static', 'c++_shared' )
+		local app_stl     = iif( prj.staticruntime == p.ON, 'c++_static', 'c++_shared' )
+		local target_dir  = '${abiConfigs[\''..abi..'\'].targetDir}'
+		local target_name = '${abiConfigs[\''..abi..'\'].targetName}'
+		local extra_args  = '${abiConfigs[\''..abi..'\'].extraArgs}'
 
-		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "${extraArgs}"'..iif( prj.kind ~= p.STATICLIB, ', "APP_STL='..app_stl..'"', '' )..' }' )
+		p.w( 'exec { commandLine "${android.ndkDirectory}/ndk-build'..ndk_build_ext..'", "NDK_PROJECT_PATH=${project.projectDir}", \'APP_PLATFORM=android-'..prj.minsdkversion..'\', \'APP_BUILD_SCRIPT=Android.mk\', \'APP_ABI='..abi..'\', "PREMAKE_CONFIGURATION=${buildConfig}", "'..extra_args..'"'..iif( prj.kind ~= p.STATICLIB, ', "APP_STL='..app_stl..'"', '' )..' }' )
 
 		if os.ishost( 'windows' ) then
-			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "if not exist \\"${project.projectDir}/${targetDir}\\" md \\"${project.projectDir}/${targetDir}\\"", ">NUL" }' )
-			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "move /Y \\"${project.projectDir}/obj/local/'..abi..'\\\\${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"", ">NUL" }' )
+			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "if not exist \\"${project.projectDir}/'..target_dir..'\\" md \\"${project.projectDir}/'..target_dir..'\\"", ">NUL" }' )
+			p.w( 'exec { commandLine \'cmd.exe\', \'/C\', "move /Y \\"${project.projectDir}/obj/local/'..abi..'\\\\'..target_name..'\\" \\"${project.projectDir}/'..target_dir..'/'..target_name..'\\"", ">NUL" }' )
 		else
-			p.w( 'exec { commandLine "mkdir -p \\"${project.projectDir}/${targetDir}\\" }' )
-			p.w( 'exec { commandLine "mv \\"${project.projectDir}/obj/local/'..abi..'/${targetDir}/${targetName}\\" \\"${project.projectDir}/${targetDir}/${targetName}\\"" }' )
+			p.w( 'exec { commandLine "mkdir -p \\"${project.projectDir}/'..target_dir..'\\" }' )
+			p.w( 'exec { commandLine "mv \\"${project.projectDir}/obj/local/'..abi..'/'..target_dir..'/'..target_name..'\\" \\"${project.projectDir}/'..target_dir..'/'..target_name..'\\"" }' )
 		end
 	end
 
