@@ -54,6 +54,7 @@ function m.generateProject( prj )
 	p.pop '}' -- android
 	
 	m.dependencies( prj )
+	m.whenTaskAdded()
 end
 
 --
@@ -259,4 +260,15 @@ function m.dependencies( prj )
 
 		p.pop '}'
 	end
+end
+
+function m.whenTaskAdded()
+	p.push 'tasks.whenTaskAdded { task ->'
+
+	-- Disable default ndkBuild
+	p.push 'if( task.name.startsWith( \'externalNativeBuild\' ) ) {'
+	p.w 'task.enabled = false'
+	p.pop '}'
+
+	p.pop '}'
 end
