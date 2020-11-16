@@ -23,11 +23,11 @@ function m.generate( prj )
 
 	p.outln ''
 
-	local e = ''
+	local el = ''
 	for cfg in p.project.eachconfig( prj ) do
 		local toolset = p.config.toolset( cfg )
 
-		p.push( e..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
+		p.push( el..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
 
 		m.localModuleFilename( cfg )
 		m.localSrcFiles( cfg )
@@ -44,7 +44,7 @@ function m.generate( prj )
 
 		p.pop()
 
-		e = 'else '
+		el = 'else '
 	end
 	p.w 'endif'
 	p.outln ''
@@ -83,13 +83,13 @@ end
 
 function m.declareDependencies( prj )
 	local dependencies = { }
-	local e = ''
+	local el = ''
 
 	for cfg in p.project.eachconfig( prj ) do
 		local links = p.config.getlinks( cfg, 'dependencies', 'object' )
 
 		if #links > 0 then
-			p.push( e..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
+			p.push( el..'ifeq ($(PREMAKE_CONFIGURATION)|$(APP_ABI),%s)', cfg.name )
 
 			for _, dependency in ipairs( links ) do
 				local buildtargetinfo = p.config.buildtargetinfo( dependency, dependency.kind, 'target' )
@@ -101,11 +101,11 @@ function m.declareDependencies( prj )
 
 			p.pop()
 
-			e = 'else '
+			el = 'else '
 		end
 	end
 
-	if #e > 0 then
+	if #el > 0 then
 		p.push 'else'
 		p.w '# Set a dummy location for the dependencies. This fixes an issue where gradle is failing to sync while analyzing the'
 		p.w '#  ndk-build because the library file is missing, which makes sense since the dependency has not been built yet.'
