@@ -14,6 +14,7 @@ function m.generate( prj )
 	p.w 'LOCAL_PATH := $(call my-dir)'
 	p.outln ''
 	m.declareDependencies( prj )
+	m.fixEmptyProjectNavigator( prj )
 	p.w 'include $(CLEAR_VARS)'
 	p.w( 'LOCAL_MODULE := %s', prj.name )
 
@@ -136,6 +137,36 @@ function m.declareDependencies( prj )
 
 		p.outln ''
 	end
+end
+
+function m.fixEmptyProjectNavigator( prj )
+	local seen = { }
+	local el   = ''
+
+	p.w '# Fix gradle sync running ndkBuild with no overridden make-arguments.'
+	p.w '# This results in PREMAKE_CONFIGURATION not being defined and the project is falsely detected as empty in the project navigator.'
+	p.push 'ifeq ($(PREMAKE_CONFIGURATION),)'
+
+	for cfg in p.project.eachconfig( prj ) do
+		if( not seen[ cfg.buildcfg ] ) then
+			local build_type       = string.lower( cfg.buildcfg )
+			local relative_int_dir = string.format( 'build/intermediates/ndkBuild/%s/obj', build_type )
+
+			p.push( el..'ifeq ($(NDK_OUT),%s)', path.join( prj.location, relative_int_dir ) )
+			p.w( 'PREMAKE_CONFIGURATION := %s', cfg.buildcfg )
+			p.pop()
+
+			seen[ cfg.buildcfg ] = true
+			el                   = 'else '
+		end
+	end
+
+	if( not table.isempty( seen ) ) then
+		p.w 'endif'
+	end
+
+	p.pop 'endif'
+	p.outln ''
 end
 
 function m.localCppFeatures( cfg )
